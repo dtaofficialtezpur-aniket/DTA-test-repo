@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 
+const { init } = require('./db');
 const restaurantRouter = require('./routes/restaurant');
 const customersRouter = require('./routes/customers');
 const menuRouter = require('./routes/menu');
@@ -10,7 +11,10 @@ const reservationsRouter = require('./routes/reservations');
 const dashboardRouter = require('./routes/dashboard');
 
 const app = express();
-app.use(cors());
+
+// Allow requests from any origin, including "null" (a file:// page, e.g. the
+// single-file HTML version of this CRM opened directly from disk).
+app.use(cors({ origin: true }));
 app.use(express.json());
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
@@ -30,4 +34,12 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`Spring Valley CRM API running on port ${PORT}`));
+
+init()
+  .then(() => {
+    app.listen(PORT, () => console.log(`Spring Valley CRM API running on port ${PORT}`));
+  })
+  .catch((err) => {
+    console.error('Failed to initialize database:', err);
+    process.exit(1);
+  });

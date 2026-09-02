@@ -1,16 +1,23 @@
 const fs = require('fs');
 const path = require('path');
-const Database = require('better-sqlite3');
+const { Pool, types } = require('pg');
 
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../../data/spring-valley.db');
+// Return NUMERIC columns (price, total_amount, total_spent, ...) as JS
+// numbers instead of strings, so the frontend can do arithmetic on them.
+types.setTypeParser(1700, (val) => (val === null ? null : parseFloat(val)));
 
-fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL is not set. Copy server/.env.example to server/.env and fill in your PostgreSQL connection string.');
+}
 
-const db = new Database(DB_PATH);
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_SSL === 'false' ? false : { rejectUnauthorized: false },
+});
 
-const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
-db.exec(schema);
+async function init() {
+  const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
+  await pool.query(schema);
+}
 
-module.exports = db;
+module.exports = { pool, init };

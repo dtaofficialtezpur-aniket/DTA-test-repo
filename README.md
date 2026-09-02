@@ -6,8 +6,11 @@ dashboard — built to be extended step by step.
 
 ## Structure
 
-- `server/` — Express + SQLite REST API
-- `client/` — React (Vite) frontend
+- `server/` — Express + **PostgreSQL** REST API
+- `client/` — React (Vite) frontend (uses the same API)
+- `single-file/spring-valley-crm.html` — a single-page, no-build version of the
+  same CRM. It also talks to the `server/` API (point it at your API URL in the
+  sidebar) — it has no database of its own.
 
 ## Restaurant details (seeded from the Google Maps listing)
 
@@ -24,17 +27,33 @@ page once confirmed.
 
 ## Getting started
 
-### 1. Backend
+### 1. Database
+
+You need a PostgreSQL database. Either:
+
+- **Local**: install PostgreSQL and create a database, e.g.
+  ```bash
+  createuser springvalley -P    # set a password when prompted
+  createdb springvalley -O springvalley
+  ```
+- **Hosted (free)**: create a project on [Neon](https://neon.tech) or
+  [Supabase](https://supabase.com) and copy the connection string they give you.
+
+### 2. Backend
 
 ```bash
 cd server
 npm install
-cp .env.example .env
-npm run seed   # creates the DB and loads the restaurant profile + sample menu
-npm run dev    # http://localhost:4000
+cp .env.example .env   # then edit .env and set DATABASE_URL to your connection string
+npm run seed            # creates the tables and loads the restaurant profile + sample menu
+npm run dev              # http://localhost:4000
 ```
 
-### 2. Frontend
+For a **local** Postgres with no SSL, also set `DATABASE_SSL=false` in `.env`.
+Hosted providers (Neon, Supabase, Render Postgres, ...) need `DATABASE_SSL=true`
+(the default).
+
+### 3. Frontend (React app)
 
 ```bash
 cd client
@@ -43,6 +62,14 @@ npm run dev    # http://localhost:5173 (proxies /api to the backend)
 ```
 
 Open http://localhost:5173.
+
+### 3b. Or: the single HTML file
+
+Open `single-file/spring-valley-crm.html` directly in a browser (double-click
+it, no install needed). In the sidebar, paste your backend's API URL — e.g.
+`http://localhost:4000/api` while developing locally, or your deployed API's
+URL (e.g. `https://spring-valley-api.onrender.com/api`) — and click **Save**.
+It's saved in that browser so you only need to enter it once per browser/device.
 
 ## Features in this first version
 
@@ -55,8 +82,18 @@ Open http://localhost:5173.
 
 ## Data
 
-SQLite database file lives at `server/data/spring-valley.db` (git-ignored). Delete it
-and re-run `npm run seed` to reset to a clean state.
+All data (both the React app and the single HTML file) lives in the PostgreSQL
+database configured via `DATABASE_URL`. To reset to a clean state, drop and
+recreate the database and re-run `npm run seed`.
+
+## Deploying so it's reachable from any browser
+
+1. Host the database (e.g. a free [Neon](https://neon.tech) project).
+2. Deploy `server/` as a web service (e.g. [Render](https://render.com) — build
+   command `npm install`, start command `npm run seed && npm start`, with
+   `DATABASE_URL` and `DATABASE_SSL=true` set as environment variables).
+3. Either deploy `client/` as a static site pointed at that API, or just open
+   `single-file/spring-valley-crm.html` and paste in the deployed API URL.
 
 ## Roadmap ideas (not built yet)
 

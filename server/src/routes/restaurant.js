@@ -1,68 +1,53 @@
 const express = require('express');
-const db = require('../db');
+const { pool } = require('../db');
 
 const router = express.Router();
 
-function parseProfile(row) {
-  if (!row) return null;
-  return {
-    ...row,
-    service_options: row.service_options ? JSON.parse(row.service_options) : [],
-    opening_hours: row.opening_hours ? JSON.parse(row.opening_hours) : {},
-  };
-}
-
-router.get('/', (req, res) => {
-  const row = db.prepare('SELECT * FROM restaurant_profile WHERE id = 1').get();
-  res.json(parseProfile(row));
+router.get('/', async (req, res, next) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM restaurant_profile WHERE id = 1');
+    res.json(rows[0] || null);
+  } catch (err) { next(err); }
 });
 
-router.put('/', (req, res) => {
-  const {
-    name, name_local, cuisine, category, address, phone, website,
-    price_range, rating, rating_count, service_options, opening_hours,
-    latitude, longitude, notes,
-  } = req.body;
+router.put('/', async (req, res, next) => {
+  try {
+    const {
+      name, name_local, cuisine, category, address, phone, website,
+      price_range, rating, rating_count, service_options, opening_hours,
+      latitude, longitude, notes,
+    } = req.body;
 
-  db.prepare(`
-    UPDATE restaurant_profile SET
-      name = COALESCE(@name, name),
-      name_local = COALESCE(@name_local, name_local),
-      cuisine = COALESCE(@cuisine, cuisine),
-      category = COALESCE(@category, category),
-      address = COALESCE(@address, address),
-      phone = COALESCE(@phone, phone),
-      website = COALESCE(@website, website),
-      price_range = COALESCE(@price_range, price_range),
-      rating = COALESCE(@rating, rating),
-      rating_count = COALESCE(@rating_count, rating_count),
-      service_options = COALESCE(@service_options, service_options),
-      opening_hours = COALESCE(@opening_hours, opening_hours),
-      latitude = COALESCE(@latitude, latitude),
-      longitude = COALESCE(@longitude, longitude),
-      notes = COALESCE(@notes, notes),
-      updated_at = datetime('now')
-    WHERE id = 1
-  `).run({
-    name: name ?? null,
-    name_local: name_local ?? null,
-    cuisine: cuisine ?? null,
-    category: category ?? null,
-    address: address ?? null,
-    phone: phone ?? null,
-    website: website ?? null,
-    price_range: price_range ?? null,
-    rating: rating ?? null,
-    rating_count: rating_count ?? null,
-    service_options: service_options ? JSON.stringify(service_options) : null,
-    opening_hours: opening_hours ? JSON.stringify(opening_hours) : null,
-    latitude: latitude ?? null,
-    longitude: longitude ?? null,
-    notes: notes ?? null,
-  });
-
-  const row = db.prepare('SELECT * FROM restaurant_profile WHERE id = 1').get();
-  res.json(parseProfile(row));
+    const { rows } = await pool.query(
+      `UPDATE restaurant_profile SET
+        name = COALESCE($1, name),
+        name_local = COALESCE($2, name_local),
+        cuisine = COALESCE($3, cuisine),
+        category = COALESCE($4, category),
+        address = COALESCE($5, address),
+        phone = COALESCE($6, phone),
+        website = COALESCE($7, website),
+        price_range = COALESCE($8, price_range),
+        rating = COALESCE($9, rating),
+        rating_count = COALESCE($10, rating_count),
+        service_options = COALESCE($11, service_options),
+        opening_hours = COALESCE($12, opening_hours),
+        latitude = COALESCE($13, latitude),
+        longitude = COALESCE($14, longitude),
+        notes = COALESCE($15, notes),
+        updated_at = now()
+      WHERE id = 1
+      RETURNING *`,
+      [
+        name ?? null, name_local ?? null, cuisine ?? null, category ?? null, address ?? null,
+        phone ?? null, website ?? null, price_range ?? null, rating ?? null, rating_count ?? null,
+        service_options ? JSON.stringify(service_options) : null,
+        opening_hours ? JSON.stringify(opening_hours) : null,
+        latitude ?? null, longitude ?? null, notes ?? null,
+      ]
+    );
+    res.json(rows[0]);
+  } catch (err) { next(err); }
 });
 
 module.exports = router;

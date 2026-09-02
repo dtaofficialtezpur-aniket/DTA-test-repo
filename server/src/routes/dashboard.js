@@ -1,46 +1,48 @@
 const express = require('express');
-const db = require('../db');
+const { pool } = require('../db');
 
 const router = express.Router();
 
-router.get('/summary', (req, res) => {
-  const totalCustomers = db.prepare('SELECT COUNT(*) AS c FROM customers').get().c;
-  const totalOrders = db.prepare('SELECT COUNT(*) AS c FROM orders').get().c;
-  const revenue = db
-    .prepare("SELECT COALESCE(SUM(total_amount), 0) AS s FROM orders WHERE status != 'cancelled'")
-    .get().s;
-  const ordersToday = db
-    .prepare("SELECT COUNT(*) AS c FROM orders WHERE date(created_at) = date('now')")
-    .get().c;
-  const revenueToday = db
-    .prepare(`
-      SELECT COALESCE(SUM(total_amount), 0) AS s FROM orders
-      WHERE date(created_at) = date('now') AND status != 'cancelled'
-    `)
-    .get().s;
-  const pendingOrders = db.prepare("SELECT COUNT(*) AS c FROM orders WHERE status IN ('pending','preparing')").get().c;
-  const upcomingReservations = db
-    .prepare("SELECT COUNT(*) AS c FROM reservations WHERE status = 'confirmed' AND reservation_time >= datetime('now')")
-    .get().c;
-  const topItems = db
-    .prepare(`
+router.get('/summary', async (req, res, next) => {
+  try {
+    const totalCustomers = (await pool.query('SELECT COUNT(*) AS c FROM customers')).rows[0].c;
+    const totalOrders = (await pool.query('SELECT COUNT(*) AS c FROM orders')).rows[0].c;
+    const revenue = (await pool.query(
+      "SELECT COALESCE(SUM(total_amount), 0) AS s FROM orders WHERE status != 'cancelled'"
+    )).rows[0].s;
+    const ordersToday = (await pool.query(
+      "SELECT COUNT(*) AS c FROM orders WHERE created_at::date = current_date"
+    )).rows[0].c;
+    const revenueToday = (await pool.query(
+      `SELECT COALESCE(SUM(total_amount), 0) AS s FROM orders
+       WHERE created_at::date = current_date AND status != 'cancelled'`
+    )).rows[0].s;
+    const pendingOrders = (await pool.query(
+      "SELECT COUNT(*) AS c FROM orders WHERE status IN ('pending','preparing')"
+    )).rows[0].c;
+    const upcomingReservations = (await pool.query(
+      "SELECT COUNT(*) AS c FROM reservations WHERE status = 'confirmed' AND reservation_time >= now()"
+    )).rows[0].c;
+    const topItems = (await pool.query(`
       SELECT item_name, SUM(quantity) AS total_qty, SUM(subtotal) AS total_revenue
       FROM order_items GROUP BY item_name ORDER BY total_qty DESC LIMIT 5
-    `)
-    .all();
-  const recentOrders = db.prepare('SELECT * FROM orders ORDER BY created_at DESC LIMIT 5').all();
+    `)).rows;
+    const recentOrders = (await pool.query(
+      'SELECT * FROM orders ORDER BY created_at DESC LIMIT 5'
+    )).rows;
 
-  res.json({
-    totalCustomers,
-    totalOrders,
-    revenue,
-    ordersToday,
-    revenueToday,
-    pendingOrders,
-    upcomingReservations,
-    topItems,
-    recentOrders,
-  });
+    res.json({
+      totalCustomers: Number(totalCustomers),
+      totalOrders: Number(totalOrders),
+      revenue: Number(revenue),
+      ordersToday: Number(ordersToday),
+      revenueToday: Number(revenueToday),
+      pendingOrders: Number(pendingOrders),
+      upcomingReservations: Number(upcomingReservations),
+      topItems,
+      recentOrders,
+    });
+  } catch (err) { next(err); }
 });
 
 module.exports = router;
