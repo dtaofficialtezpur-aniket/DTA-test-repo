@@ -8,9 +8,10 @@ dashboard — built to be extended step by step.
 
 - `server/` — Express + **PostgreSQL** REST API
 - `client/` — React (Vite) frontend (uses the same API)
-- `single-file/spring-valley-crm.html` — a single-page, no-build version of the
-  same CRM. It also talks to the `server/` API (point it at your API URL in the
-  sidebar) — it has no database of its own.
+- `single-file/spring-valley-crm.html` — a standalone, no-install, no-database
+  version of the same CRM. It stores data in the browser's local storage and
+  lets you **download the current data as a PDF** any time — no server, no
+  signup, works fully offline. It is independent of `server/`/`client/`.
 
 ## Restaurant details (seeded from the Google Maps listing)
 
@@ -63,13 +64,18 @@ npm run dev    # http://localhost:5173 (proxies /api to the backend)
 
 Open http://localhost:5173.
 
-### 3b. Or: the single HTML file
+### 3b. Or: the single HTML file (no database, no setup)
 
 Open `single-file/spring-valley-crm.html` directly in a browser (double-click
-it, no install needed). In the sidebar, paste your backend's API URL — e.g.
-`http://localhost:4000/api` while developing locally, or your deployed API's
-URL (e.g. `https://spring-valley-api.onrender.com/api`) — and click **Save**.
-It's saved in that browser so you only need to enter it once per browser/device.
+it) — nothing to install, no backend or database needed. Data is kept in that
+browser's local storage. Whenever you add/edit a customer, order, menu item,
+reservation, or the restaurant profile, the **Download CRM Data (PDF)** button
+at the top updates — click it any time to download a PDF snapshot of
+everything (profile, customers, menu, orders, reservations) to store wherever
+you like.
+
+Trade-off: since there's no shared database, this version's data lives only in
+that one browser/device and isn't synced with the `server`/`client` version.
 
 ## Features in this first version
 
@@ -82,9 +88,12 @@ It's saved in that browser so you only need to enter it once per browser/device.
 
 ## Data
 
-All data (both the React app and the single HTML file) lives in the PostgreSQL
-database configured via `DATABASE_URL`. To reset to a clean state, drop and
-recreate the database and re-run `npm run seed`.
+- **React app (`client/` + `server/`)**: data lives in the PostgreSQL database
+  configured via `DATABASE_URL`. To reset to a clean state, drop and recreate
+  the database and re-run `npm run seed`.
+- **Single HTML file**: data lives in that browser's local storage. Use the
+  **Download CRM Data (PDF)** button to keep a portable copy; clearing the
+  browser's site data resets it.
 
 ## Deploying so it's reachable from any browser
 
