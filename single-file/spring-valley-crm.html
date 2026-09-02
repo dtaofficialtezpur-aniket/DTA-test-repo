@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Spring Valley CRM</title>
+<style>
+  :root {
+    --bg: #f6f4ef;
+    --panel: #ffffff;
+    --ink: #24301f;
+    --muted: #6b7a63;
+    --accent: #3c6e47;
+    --accent-dark: #2a4e32;
+    --border: #e1ddd0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  .app-shell { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: 220px;
+    background: var(--accent-dark);
+    color: #f2f2ea;
+    padding: 24px 16px;
+    flex-shrink: 0;
+  }
+  .brand-name { font-size: 1.3rem; font-weight: 700; }
+  .brand-sub { font-size: 0.8rem; opacity: 0.8; margin-bottom: 24px; }
+  .sidebar nav { display: flex; flex-direction: column; gap: 4px; }
+  .sidebar nav button {
+    all: unset;
+    cursor: pointer;
+    color: #e6e6dd;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 0.95rem;
+  }
+  .sidebar nav button:hover { background: rgba(255,255,255,0.08); }
+  .sidebar nav button.active { background: var(--accent); color: #fff; font-weight: 600; }
+  .content { flex: 1; padding: 32px 40px; max-width: 1100px; }
+  h1 { margin-top: 0; }
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+  }
+  .card-value { font-size: 1.6rem; font-weight: 700; color: var(--accent-dark); }
+  .card-label { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+  table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-top: 12px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+  th { background: #eef2ea; color: var(--accent-dark); }
+  tr:last-child td { border-bottom: none; }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 24px; }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: end; }
+  .form-grid label, label.full { display: flex; flex-direction: column; font-size: 0.8rem; color: var(--muted); gap: 4px; }
+  label.full { grid-column: 1 / -1; }
+  input, select, textarea, button { font: inherit; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); }
+  textarea { min-height: 60px; width: 100%; }
+  button.primary, .panel > form button[type=submit] { background: var(--accent); color: #fff; border: none; cursor: pointer; font-weight: 600; }
+  button.primary:hover, .panel > form button[type=submit]:hover { background: var(--accent-dark); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .link-btn { background: none; color: var(--accent-dark); border: none; padding: 0; text-decoration: underline; font-weight: 400; cursor: pointer; }
+  .link-btn:hover { color: #b23b3b; }
+  .inline-form { display: flex; gap: 8px; margin-bottom: 16px; }
+  .pick-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow-y: auto; }
+  .pick-list li { display: flex; justify-content: space-between; align-items: center; background: #f6f4ef; border-radius: 6px; padding: 6px 10px; }
+  .badge { padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: capitalize; background: #eee; }
+  .status-pending { background: #fff3cd; color: #7a5b00; }
+  .status-preparing { background: #dbe9ff; color: #1a4d99; }
+  .status-ready { background: #d9f2e6; color: #146c43; }
+  .status-completed { background: #e2e2e2; color: #444; }
+  .status-cancelled { background: #fbdada; color: #a3231e; }
+  .status-confirmed { background: #dbe9ff; color: #1a4d99; }
+  .status-seated { background: #d9f2e6; color: #146c43; }
+  .status-no-show { background: #fbdada; color: #a3231e; }
+  .error { color: #a3231e; }
+  .success { color: #146c43; }
+  .hint { color: var(--muted); font-size: 0.8rem; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand-name">Spring Valley</div>
+    <div class="brand-sub">স্প্রিং ভ্যালী · CRM</div>
+    <nav id="nav"></nav>
+    <p class="hint" style="margin-top:24px;">Data is saved in this browser only (localStorage). No server, no internet needed.</p>
+  </aside>
+  <main class="content" id="content"></main>
+</div>
+
+<script>
+/* ---------- Storage layer (replaces the backend) ---------- */
+const STORAGE_KEY = 'springValleyCRM';
+
+function seedData() {
+  const now = new Date().toISOString();
+  return {
+    restaurant: {
+      name: 'Spring Valley',
+      name_local: 'স্প্রিং ভ্যালী',
+      cuisine: 'Assamese',
+      category: 'Assamese restaurant',
+      address: 'JQFX+V95, NC Rd, Mahabhairab, Tezpur, Assam 784001',
+      phone: '03712 220 643',
+      website: 'lahkar.com',
+      price_range: '₹1–200',
+      rating: 4.0,
+      rating_count: 1922,
+      service_options: ['Order online', 'Dine-in', 'Takeaway', 'Delivery'],
+      opening_hours: {
+        monday: '09:00-21:00', tuesday: '09:00-21:00', wednesday: '09:00-21:00',
+        thursday: '09:00-21:00', friday: '09:00-21:00', saturday: '09:00-21:00', sunday: '09:00-21:00'
+      },
+      latitude: 26.624646,
+      longitude: 92.7984868,
+      notes: 'Seeded from the Google Maps listing. Hours are an approximation (closes 9 pm) — verify and update exact opening times per day here.'
+    },
+    nextId: 100,
+    customers: [],
+    categories: ['Starters', 'Assamese Thali', 'Rice & Curry', 'Beverages', 'Desserts'],
+    menuItems: [
+      { id: 1, category: 'Starters', name: 'Veg Pakora', description: 'Assorted vegetable fritters', price: 80, isVeg: true, isAvailable: true },
+      { id: 2, category: 'Starters', name: 'Chicken Pakora', description: 'Spiced fried chicken bites', price: 130, isVeg: false, isAvailable: true },
+      { id: 3, category: 'Assamese Thali', name: 'Assamese Veg Thali', description: 'Rice, dal, seasonal vegetables, pickle', price: 150, isVeg: true, isAvailable: true },
+      { id: 4, category: 'Assamese Thali', name: 'Assamese Fish Thali', description: 'Rice, dal, fish curry, pickle', price: 190, isVeg: false, isAvailable: true },
+      { id: 5, category: 'Rice & Curry', name: 'Duck Curry with Rice', description: 'Traditional duck curry, steamed rice', price: 180, isVeg: false, isAvailable: true },
+      { id: 6, category: 'Rice & Curry', name: 'Egg Curry with Rice', description: 'Egg curry, steamed rice', price: 110, isVeg: false, isAvailable: true },
+      { id: 7, category: 'Beverages', name: 'Red Tea (Xah)', description: 'Traditional Assamese red tea', price: 20, isVeg: true, isAvailable: true },
+      { id: 8, category: 'Beverages', name: 'Lemon Soda', description: 'Fresh lemon soda', price: 40, isVeg: true, isAvailable: true },
+      { id: 9, category: 'Desserts', name: 'Payas', description: 'Assamese rice pudding', price: 60, isVeg: true, isAvailable: true }
+    ],
+    orders: [],
+    reservations: [],
+    createdAt: now
+  };
+}
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) { /* fall through to seed */ }
+  const fresh = seedData();
+  saveData(fresh);
+  return fresh;
+}
+
+function saveData(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+let db = loadData();
+function persist() { saveData(db); }
+function nextId() { db.nextId += 1; persist(); return db.nextId; }
+
+/* ---------- Tiny router / render helpers ---------- */
+const tabs = [
+  { key: 'dashboard', label: 'Dashboard' },
+  { key: 'customers', label: 'Customers' },
+  { key: 'menu', label: 'Menu' },
+  { key: 'orders', label: 'Orders' },
+  { key: 'reservations', label: 'Reservations' },
+  { key: 'settings', label: 'Restaurant Profile' }
+];
+let activeTab = 'dashboard';
+let cart = []; // [{menuItemId, quantity}]
+
+function esc(str) {
+  return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function renderNav() {
+  const nav = document.getElementById('nav');
+  nav.innerHTML = tabs.map(t =>
+    `<button data-tab="${t.key}" class="${t.key === activeTab ? 'active' : ''}">${t.label}</button>`
+  ).join('');
+  nav.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => { activeTab = btn.dataset.tab; render(); });
+  });
+}
+
+function render() {
+  renderNav();
+  const content = document.getElementById('content');
+  content.innerHTML = '';
+  const renderers = { dashboard: renderDashboard, customers: renderCustomers, menu: renderMenu, orders: renderOrders, reservations: renderReservations, settings: renderSettings };
+  renderers[activeTab](content);
+}
+
+/* ---------- Dashboard ---------- */
+function renderDashboard(root) {
+  const today = new Date().toDateString();
+  const ordersToday = db.orders.filter(o => new Date(o.createdAt).toDateString() === today);
+  const revenueToday = ordersToday.filter(o => o.status !== 'cancelled').reduce((s, o) => s + o.total, 0);
+  const revenue = db.orders.filter(o => o.status !== 'cancelled').reduce((s, o) => s + o.total, 0);
+  const pending = db.orders.filter(o => ['pending', 'preparing'].includes(o.status)).length;
+  const upcoming = db.reservations.filter(r => r.status === 'confirmed' && new Date(r.time) >= new Date()).length;
+
+  const itemTotals = {};
+  db.orders.forEach(o => o.items.forEach(it => {
+    itemTotals[it.name] = itemTotals[it.name] || { qty: 0, revenue: 0 };
+    itemTotals[it.name].qty += it.quantity;
+    itemTotals[it.name].revenue += it.price * it.quantity;
+  }));
+  const topItems = Object.entries(itemTotals).sort((a, b) => b[1].qty - a[1].qty).slice(0, 5);
+  const recentOrders = [...db.orders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
+
+  const cards = [
+    { label: 'Orders Today', value: ordersToday.length },
+    { label: 'Revenue Today', value: `₹${revenueToday}` },
+    { label: 'Total Customers', value: db.customers.length },
+    { label: 'Total Orders', value: db.orders.length },
+    { label: 'Total Revenue', value: `₹${revenue}` },
+    { label: 'Pending Orders', value: pending },
+    { label: 'Upcoming Reservations', value: upcoming }
+  ];
+
+  root.innerHTML = `
+    <h1>Dashboard</h1>
+    <div class="card-grid">${cards.map(c => `<div class="card"><div class="card-value">${esc(c.value)}</div><div class="card-label">${c.label}</div></div>`).join('')}</div>
+    <div class="grid-2">
+      <section>
+        <h2>Top Selling Items</h2>
+        <table><thead><tr><th>Item</th><th>Qty Sold</th><th>Revenue</th></tr></thead>
+          <tbody>${topItems.length ? topItems.map(([name, t]) => `<tr><td>${esc(name)}</td><td>${t.qty}</td><td>₹${t.revenue}</td></tr>`).join('') : '<tr><td colspan="3">No orders yet</td></tr>'}</tbody>
+        </table>
+      </section>
+      <section>
+        <h2>Recent Orders</h2>
+        <table><thead><tr><th>#</th><th>Type</th><th>Status</th><th>Total</th></tr></thead>
+          <tbody>${recentOrders.length ? recentOrders.map(o => `<tr><td>${o.id}</td><td>${esc(o.orderType)}</td><td><span class="badge status-${o.status}">${o.status}</span></td><td>₹${o.total}</td></tr>`).join('') : '<tr><td colspan="4">No orders yet</td></tr>'}</tbody>
+        </table>
+      </section>
+    </div>
+  `;
+}
+
+/* ---------- Customers ---------- */
+function renderCustomers(root, query = '') {
+  const q = query.toLowerCase();
+  const list = db.customers.filter(c =>
+    !q || c.name.toLowerCase().includes(q) || (c.phone || '').includes(q) || (c.email || '').toLowerCase().includes(q)
+  ).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  root.innerHTML = `
+    <h1>Customers</h1>
+    <form class="inline-form" id="searchForm">
+      <input id="searchInput" placeholder="Search by name, phone, or email" value="${esc(query)}" />
+      <button type="submit">Search</button>
+    </form>
+    <section class="panel">
+      <h2>Add Customer</h2>
+      <p class="error" id="custError"></p>
+      <form class="form-grid" id="custForm">
+        <input name="name" placeholder="Name *" required />
+        <input name="phone" placeholder="Phone" />
+        <input name="email" placeholder="Email" />
+        <input name="address" placeholder="Address" />
+        <input name="notes" placeholder="Notes" />
+        <button type="submit">Add Customer</button>
+      </form>
+    </section>
+    <table>
+      <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Visits</th><th>Total Spent</th><th></th></tr></thead>
+      <tbody>
+        ${list.length ? list.map(c => `
+          <tr>
+            <td>${esc(c.name)}</td><td>${esc(c.phone)}</td><td>${esc(c.email)}</td>
+            <td>${c.visitCount}</td><td>₹${c.totalSpent}</td>
+            <td><button class="link-btn" data-del="${c.id}">Delete</button></td>
+          </tr>`).join('') : '<tr><td colspan="6">No customers yet</td></tr>'}
+      </tbody>
+    </table>
+  `;
+
+  root.querySelector('#searchForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    renderCustomers(root, root.querySelector('#searchInput').value);
+  });
+
+  root.querySelector('#custForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const name = fd.get('name').trim();
+    const phone = fd.get('phone').trim();
+    const errEl = root.querySelector('#custError');
+    if (!name) { errEl.textContent = 'Name is required'; return; }
+    if (phone && db.customers.some(c => c.phone === phone)) {
+      errEl.textContent = 'A customer with this phone already exists'; return;
+    }
+    db.customers.push({
+      id: nextId(), name, phone, email: fd.get('email').trim(), address: fd.get('address').trim(),
+      notes: fd.get('notes').trim(), visitCount: 0, totalSpent: 0, createdAt: new Date().toISOString()
+    });
+    persist();
+    renderCustomers(root);
+  });
+
+  root.querySelectorAll('[data-del]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!confirm('Delete this customer?')) return;
+      db.customers = db.customers.filter(c => c.id !== Number(btn.dataset.del));
+      persist();
+      renderCustomers(root, query);
+    });
+  });
+}
+
+/* ---------- Menu ---------- */
+function renderMenu(root) {
+  root.innerHTML = `
+    <h1>Menu</h1>
+    <section class="panel">
+      <h2>Add Menu Item</h2>
+      <p class="error" id="menuError"></p>
+      <form class="form-grid" id="menuForm">
+        <input name="name" placeholder="Name *" required />
+        <input name="description" placeholder="Description" />
+        <input name="price" type="number" min="0" step="1" placeholder="Price *" required />
+        <select name="category">
+          <option value="">No category</option>
+          ${db.categories.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('')}
+        </select>
+        <select name="isVeg">
+          <option value="1">Veg</option>
+          <option value="0">Non-Veg</option>
+        </select>
+        <button type="submit">Add Item</button>
+      </form>
+    </section>
+    <table>
+      <thead><tr><th>Name</th><th>Category</th><th>Price</th><th>Type</th><th>Available</th><th></th></tr></thead>
+      <tbody>
+        ${db.menuItems.length ? db.menuItems.map(i => `
+          <tr>
+            <td>${esc(i.name)}</td><td>${esc(i.category || '-')}</td><td>₹${i.price}</td>
+            <td>${i.isVeg ? 'Veg' : 'Non-Veg'}</td>
+            <td><button class="link-btn" data-toggle="${i.id}">${i.isAvailable ? 'Yes' : 'No'}</button></td>
+            <td><button class="link-btn" data-del="${i.id}">Delete</button></td>
+          </tr>`).join('') : '<tr><td colspan="6">No menu items yet</td></tr>'}
+      </tbody>
+    </table>
+  `;
+
+  root.querySelector('#menuForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const name = fd.get('name').trim();
+    const price = Number(fd.get('price'));
+    if (!name || Number.isNaN(price)) { root.querySelector('#menuError').textContent = 'Name and price are required'; return; }
+    db.menuItems.push({
+      id: nextId(), category: fd.get('category') || null, name,
+      description: fd.get('description').trim(), price, isVeg: fd.get('isVeg') === '1', isAvailable: true
+    });
+    persist();
+    renderMenu(root);
+  });
+
+  root.querySelectorAll('[data-toggle]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const item = db.menuItems.find(i => i.id === Number(btn.dataset.toggle));
+      item.isAvailable = !item.isAvailable;
+      persist();
+      renderMenu(root);
+    });
+  });
+
+  root.querySelectorAll('[data-del]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!confirm('Delete this menu item?')) return;
+      db.menuItems = db.menuItems.filter(i => i.id !== Number(btn.dataset.del));
+      persist();
+      renderMenu(root);
+    });
+  });
+}
+
+/* ---------- Orders ---------- */
+function renderOrders(root) {
+  const available = db.menuItems.filter(i => i.isAvailable);
+  const statuses = ['pending', 'preparing', 'ready', 'completed', 'cancelled'];
+  const cartTotal = cart.reduce((sum, c) => {
+    const item = db.menuItems.find(m => m.id === c.menuItemId);
+    return sum + (item ? item.price * c.quantity : 0);
+  }, 0);
+
+  root.innerHTML = `
+    <h1>Orders</h1>
+    <section class="panel">
+      <h2>New Order</h2>
+      <div class="form-grid">
+        <select id="orderType">
+          <option value="dine-in">Dine-in</option>
+          <option value="takeaway">Takeaway</option>
+          <option value="delivery">Delivery</option>
+        </select>
+        <input id="tableNumber" placeholder="Table number" />
+        <select id="customerSelect">
+          <option value="">Walk-in / no customer</option>
+          ${db.customers.map(c => `<option value="${c.id}">${esc(c.name)}${c.phone ? ' (' + esc(c.phone) + ')' : ''}</option>`).join('')}
+        </select>
+      </div>
+      <div class="grid-2">
+        <div>
+          <h3>Menu</h3>
+          <ul class="pick-list">
+            ${available.length ? available.map(m => `<li><span>${esc(m.name)} · ₹${m.price}</span><button data-add="${m.id}">Add</button></li>`).join('') : '<li>No available items</li>'}
+          </ul>
+        </div>
+        <div>
+          <h3>Cart</h3>
+          <ul class="pick-list" id="cartList">
+            ${cart.length ? cart.map(c => {
+              const item = db.menuItems.find(m => m.id === c.menuItemId);
+              return `<li><span>${esc(item?.name)} x${c.quantity}</span><button class="link-btn" data-remove="${c.menuItemId}">Remove</button></li>`;
+            }).join('') : '<li>No items yet</li>'}
+          </ul>
+          <p><strong>Total: ₹${cartTotal}</strong></p>
+          <button id="placeOrderBtn" ${cart.length === 0 ? 'disabled' : ''}>Place Order</button>
+        </div>
+      </div>
+    </section>
+    <table>
+      <thead><tr><th>#</th><th>Type</th><th>Table</th><th>Total</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        ${db.orders.length ? [...db.orders].sort((a, b) => b.id - a.id).map(o => `
+          <tr>
+            <td>${o.id}</td><td>${esc(o.orderType)}</td><td>${esc(o.tableNumber || '-')}</td>
+            <td>₹${o.total}</td>
+            <td><span class="badge status-${o.status}">${o.status}</span></td>
+            <td>
+              <select data-status="${o.id}">
+                ${statuses.map(s => `<option value="${s}" ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}
+              </select>
+            </td>
+          </tr>`).join('') : '<tr><td colspan="6">No orders yet</td></tr>'}
+      </tbody>
+    </table>
+  `;
+
+  root.querySelectorAll('[data-add]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = Number(btn.dataset.add);
+      const existing = cart.find(c => c.menuItemId === id);
+      if (existing) existing.quantity += 1; else cart.push({ menuItemId: id, quantity: 1 });
+      renderOrders(root);
+    });
+  });
+
+  root.querySelectorAll('[data-remove]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      cart = cart.filter(c => c.menuItemId !== Number(btn.dataset.remove));
+      renderOrders(root);
+    });
+  });
+
+  const placeBtn = root.querySelector('#placeOrderBtn');
+  if (placeBtn) placeBtn.addEventListener('click', () => {
+    if (cart.length === 0) return;
+    const customerId = root.querySelector('#customerSelect').value ? Number(root.querySelector('#customerSelect').value) : null;
+    const orderType = root.querySelector('#orderType').value;
+    const tableNumber = root.querySelector('#tableNumber').value || null;
+
+    const items = cart.map(c => {
+      const item = db.menuItems.find(m => m.id === c.menuItemId);
+      return { menuItemId: item.id, name: item.name, price: item.price, quantity: c.quantity };
+    });
+    const total = items.reduce((s, i) => s + i.price * i.quantity, 0);
+
+    db.orders.push({
+      id: nextId(), customerId, orderType, tableNumber, status: 'pending',
+      items, total, createdAt: new Date().toISOString()
+    });
+
+    if (customerId) {
+      const cust = db.customers.find(c => c.id === customerId);
+      if (cust) { cust.visitCount += 1; cust.totalSpent += total; cust.lastVisitAt = new Date().toISOString(); }
+    }
+
+    cart = [];
+    persist();
+    renderOrders(root);
+  });
+
+  root.querySelectorAll('[data-status]').forEach(sel => {
+    sel.addEventListener('change', () => {
+      const order = db.orders.find(o => o.id === Number(sel.dataset.status));
+      order.status = sel.value;
+      persist();
+      renderOrders(root);
+    });
+  });
+}
+
+/* ---------- Reservations ---------- */
+function renderReservations(root) {
+  const statuses = ['confirmed', 'seated', 'cancelled', 'completed', 'no-show'];
+  root.innerHTML = `
+    <h1>Reservations</h1>
+    <section class="panel">
+      <h2>New Reservation</h2>
+      <p class="error" id="resError"></p>
+      <form class="form-grid" id="resForm">
+        <select name="customerId">
+          <option value="">Walk-in / no customer</option>
+          ${db.customers.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}
+        </select>
+        <input name="partySize" type="number" min="1" value="2" placeholder="Party size" />
+        <input name="time" type="datetime-local" required />
+        <input name="notes" placeholder="Notes" />
+        <button type="submit">Book</button>
+      </form>
+    </section>
+    <table>
+      <thead><tr><th>Time</th><th>Party</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        ${db.reservations.length ? [...db.reservations].sort((a, b) => new Date(b.time) - new Date(a.time)).map(r => `
+          <tr>
+            <td>${new Date(r.time).toLocaleString()}</td><td>${r.partySize}</td>
+            <td><span class="badge status-${r.status}">${r.status}</span></td>
+            <td>
+              <select data-status="${r.id}">
+                ${statuses.map(s => `<option value="${s}" ${s === r.status ? 'selected' : ''}>${s}</option>`).join('')}
+              </select>
+            </td>
+          </tr>`).join('') : '<tr><td colspan="4">No reservations yet</td></tr>'}
+      </tbody>
+    </table>
+  `;
+
+  root.querySelector('#resForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const time = fd.get('time');
+    if (!time) { root.querySelector('#resError').textContent = 'Time is required'; return; }
+    db.reservations.push({
+      id: nextId(),
+      customerId: fd.get('customerId') ? Number(fd.get('customerId')) : null,
+      partySize: Number(fd.get('partySize')) || 1,
+      time, status: 'confirmed', notes: fd.get('notes').trim()
+    });
+    persist();
+    renderReservations(root);
+  });
+
+  root.querySelectorAll('[data-status]').forEach(sel => {
+    sel.addEventListener('change', () => {
+      const r = db.reservations.find(r => r.id === Number(sel.dataset.status));
+      r.status = sel.value;
+      persist();
+      renderReservations(root);
+    });
+  });
+}
+
+/* ---------- Settings / Restaurant Profile ---------- */
+function renderSettings(root, savedMsg = '') {
+  const p = db.restaurant;
+  const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  root.innerHTML = `
+    <h1>Restaurant Profile</h1>
+    ${savedMsg ? `<p class="success">${savedMsg}</p>` : ''}
+    <form class="panel" id="profileForm">
+      <div class="form-grid">
+        <label>Name<input name="name" value="${esc(p.name)}" /></label>
+        <label>Local Name<input name="name_local" value="${esc(p.name_local)}" /></label>
+        <label>Cuisine<input name="cuisine" value="${esc(p.cuisine)}" /></label>
+        <label>Category<input name="category" value="${esc(p.category)}" /></label>
+        <label>Phone<input name="phone" value="${esc(p.phone)}" /></label>
+        <label>Website<input name="website" value="${esc(p.website)}" /></label>
+        <label>Price Range<input name="price_range" value="${esc(p.price_range)}" /></label>
+        <label>Rating<input name="rating" type="number" step="0.1" value="${p.rating}" /></label>
+        <label>Rating Count<input name="rating_count" type="number" value="${p.rating_count}" /></label>
+        <label>Latitude<input name="latitude" type="number" step="0.000001" value="${p.latitude}" /></label>
+        <label>Longitude<input name="longitude" type="number" step="0.000001" value="${p.longitude}" /></label>
+      </div>
+      <label class="full">Address<textarea name="address">${esc(p.address)}</textarea></label>
+      <label class="full">Notes<textarea name="notes">${esc(p.notes)}</textarea></label>
+      <h2>Opening Hours</h2>
+      <div class="form-grid">
+        ${days.map(d => `<label style="text-transform:capitalize">${d}<input name="hours_${d}" placeholder="09:00-21:00 or Closed" value="${esc(p.opening_hours[d] || '')}" /></label>`).join('')}
+      </div>
+      <button type="submit" style="margin-top:16px;">Save Profile</button>
+    </form>
+  `;
+
+  root.querySelector('#profileForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    ['name', 'name_local', 'cuisine', 'category', 'phone', 'website', 'price_range', 'address', 'notes'].forEach(f => {
+      p[f] = fd.get(f);
+    });
+    p.rating = Number(fd.get('rating'));
+    p.rating_count = Number(fd.get('rating_count'));
+    p.latitude = Number(fd.get('latitude'));
+    p.longitude = Number(fd.get('longitude'));
+    days.forEach(d => { p.opening_hours[d] = fd.get('hours_' + d); });
+    persist();
+    renderSettings(root, 'Saved.');
+  });
+}
+
+/* ---------- Boot ---------- */
+render();
+</script>
+</body>
+</html>
