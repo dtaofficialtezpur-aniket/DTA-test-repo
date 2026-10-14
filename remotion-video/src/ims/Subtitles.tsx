@@ -1,23 +1,21 @@
 import React from "react";
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import captions from "./captions.json";
-import { C, FONT } from "./kit";
+import { A, Accent, UI } from "./kit";
 
 type Word = { w: string; s: number; e: number };
 type Cap = { start: number; end: number; words: Word[] };
 
 /**
- * Voiceover captions. `captions.json` holds the start time of every line and
- * word, generated alongside the voiceover audio, so the highlight follows the voice.
+ * Voiceover captions on a dark frosted bar. `captions.json` holds the start time
+ * of every line and word (generated with the voiceover), so the highlight follows the voice.
  */
-export const Subtitles: React.FC<{ color?: string }> = ({ color = C.cyan }) => {
+export const Subtitles: React.FC<{ accent?: Accent }> = ({ accent = A.indigo }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const t = frame / fps;
 
-  const cap = (captions as Cap[]).find(
-    (c) => t >= c.start - 0.12 && t <= c.end + 0.4,
-  );
+  const cap = (captions as Cap[]).find((c) => t >= c.start - 0.12 && t <= c.end + 0.4);
   if (!cap) return null;
 
   const enter = spring({
@@ -36,7 +34,7 @@ export const Subtitles: React.FC<{ color?: string }> = ({ color = C.cyan }) => {
         position: "absolute",
         left: 0,
         right: 0,
-        bottom: 46,
+        bottom: 50,
         display: "flex",
         justifyContent: "center",
         opacity: fade * interpolate(enter, [0, 0.4], [0, 1], { extrapolateRight: "clamp" }),
@@ -45,17 +43,18 @@ export const Subtitles: React.FC<{ color?: string }> = ({ color = C.cyan }) => {
     >
       <div
         style={{
-          maxWidth: 1560,
+          maxWidth: 1600,
           textAlign: "center",
-          fontFamily: FONT,
-          fontWeight: 800,
-          fontSize: 46,
+          fontFamily: UI,
+          fontWeight: 700,
+          fontSize: 44,
           lineHeight: 1.25,
-          padding: "16px 44px",
-          borderRadius: 40,
-          background: "rgba(255,255,255,0.94)",
-          border: "2px solid rgba(15,23,42,0.06)",
-          boxShadow: "0 14px 40px rgba(15,23,42,0.18)",
+          padding: "18px 46px",
+          borderRadius: 38,
+          background: "rgba(20,20,43,0.86)",
+          border: "1.5px solid rgba(255,255,255,0.14)",
+          boxShadow: "0 22px 50px -12px rgba(20,20,43,0.5)",
+          backdropFilter: "blur(14px)",
         }}
       >
         {cap.words.map((word, i) => {
@@ -66,11 +65,11 @@ export const Subtitles: React.FC<{ color?: string }> = ({ color = C.cyan }) => {
               key={i}
               style={{
                 display: "inline-block",
-                marginRight: 0,
                 padding: "0 7px",
+                marginRight: 6,
                 borderRadius: 12,
-                color: current ? C.white : spoken ? C.ink : "#94a3b8",
-                background: current ? color : "transparent",
+                color: current ? "#fff" : spoken ? "#fff" : "rgba(255,255,255,0.42)",
+                background: current ? `linear-gradient(135deg, ${accent.light}, ${accent.main})` : "transparent",
                 transform: current ? "scale(1.07)" : "scale(1)",
               }}
             >
