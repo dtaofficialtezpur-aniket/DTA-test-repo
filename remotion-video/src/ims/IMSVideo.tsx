@@ -1,8 +1,16 @@
 import React from "react";
-import { AbsoluteFill, interpolate, Sequence, useCurrentFrame } from "remotion";
+import {
+  AbsoluteFill,
+  Audio,
+  interpolate,
+  Sequence,
+  staticFile,
+  useCurrentFrame,
+} from "remotion";
 import {
   ACCENTS,
   Accent,
+  Badge,
   C,
   Caption,
   FONT,
@@ -11,6 +19,7 @@ import {
   Scene,
   Stage,
 } from "./kit";
+import { Subtitles } from "./Subtitles";
 
 export const FPS = 30;
 export const IMS_DURATION = 45 * FPS; // 1350 frames
@@ -25,9 +34,9 @@ const OUTRO = { from: 1260, dur: 90 }; //              42s - 45s
 
 const Hook: React.FC = () => (
   <Scene>
-    <Caption text="INVENTORY MANAGEMENT SYSTEMS" size={44} delay={4} color={C.cyan} />
+    <Badge text="INVENTORY MANAGEMENT SYSTEMS" color={C.cyan} delay={2} size={34} />
     <Letters text="YOUR STOCK" size={230} delay={6} />
-    <Letters text="IS YOUR MONEY" size={170} delay={28} accent={ACCENTS.yellow} />
+    <Letters text="IS YOUR MONEY" size={170} delay={28} accent={ACCENTS.lime} />
   </Scene>
 );
 
@@ -92,7 +101,7 @@ const BigNumber: React.FC<{ n: string; color: string }> = ({ n, color }) => {
         fontWeight: 900,
         fontSize: 820,
         color,
-        opacity: 0.09,
+        opacity: 0.13,
         transform: `translate3d(${x}px, 0, -600px) rotateY(${x / 4}deg)`,
         lineHeight: 1,
       }}
@@ -107,7 +116,7 @@ const Benefit: React.FC<{ i: number }> = ({ i }) => {
   return (
     <Scene>
       <BigNumber n={`0${i + 1}`} color={b.accent.main} />
-      <Caption text={`BENEFIT 0${i + 1}`} size={40} delay={2} color={b.accent.main} />
+      <Badge text={`BENEFIT 0${i + 1}`} color={b.accent.main} delay={2} size={32} />
       <Letters text={b.lines[0]} size={190} accent={ACCENTS.white} delay={4} stagger={1.8} />
       <Letters text={b.lines[1]} size={190} accent={b.accent} delay={14} stagger={1.8} />
       <Caption text={b.note} delay={32} />
@@ -134,7 +143,7 @@ const Payoff: React.FC<{ i: number }> = ({ i }) => {
 const Outro: React.FC = () => (
   <Scene swing={0.7}>
     <Letters text="IMS" size={520} accent={ACCENTS.cyan} stagger={5} depth={22} />
-    <Caption text="INVENTORY MANAGEMENT SYSTEM" size={52} delay={26} color={C.white} />
+    <Caption text="INVENTORY MANAGEMENT SYSTEM" size={52} delay={26} color={C.ink} />
     <Caption text="Take control of your stock." size={44} delay={38} />
   </Scene>
 );
@@ -155,6 +164,8 @@ export const IMSVideo: React.FC = () => {
   return (
     <AbsoluteFill style={{ backgroundColor: C.bg }}>
       <Stage tint={tint} />
+      <Audio src={staticFile("audio/music.mp3")} volume={1} />
+      <Audio src={staticFile("audio/voice.mp3")} volume={1} />
 
       <Sequence from={HOOK.from} durationInFrames={HOOK.dur} name="Hook">
         <Hook />
@@ -189,6 +200,7 @@ export const IMSVideo: React.FC = () => {
         <Outro />
       </Sequence>
 
+      <Subtitles color={tint} />
       <ProgressBar color={tint} />
     </AbsoluteFill>
   );
