@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Inter, Instrument_Serif } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--f-inter" });
-const display = Bricolage_Grotesque({ subsets: ["latin"], variable: "--f-display" });
-const serif = Instrument_Serif({ subsets: ["latin"], weight: "400", style: ["normal", "italic"], variable: "--f-serif" });
+const sans = Geist({ subsets: ["latin"], variable: "--f-sans" });
+const mono = Geist_Mono({ subsets: ["latin"], variable: "--f-mono" });
 
 export const metadata: Metadata = {
   title: "DTA — Digital · Trading · Accounts",
@@ -15,7 +14,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${display.variable} ${serif.variable} antialiased`}>{children}</body>
+      <body className={`${sans.variable} ${mono.variable} antialiased`}>{children}</body>
     </html>
   );
 }

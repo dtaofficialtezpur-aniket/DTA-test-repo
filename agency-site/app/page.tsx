@@ -1,14 +1,10 @@
-import { Software } from "@/components/Bento";
-import { Cursor } from "@/components/Cursor";
-import { Departments } from "@/components/Departments";
 import { Hero } from "@/components/Hero";
 import { Nav } from "@/components/Nav";
-import { About, Contact, Footer, Marquee, Offers, Process, Why } from "@/components/Sections";
+import { About, Contact, Departments, Footer, Marquee, Offers, Process, Software, Why } from "@/components/Sections";
 
 export default function Home() {
   return (
     <>
-      <Cursor />
       <Nav />
       <main>
         <Hero />
