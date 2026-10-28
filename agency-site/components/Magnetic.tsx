@@ -26,15 +26,11 @@ export function Magnetic({ children, strength = 0.3 }: { children: React.ReactNo
   );
 }
 
-export function Button({ href, children, variant = "dark" }: { href: string; children: React.ReactNode; variant?: "dark" | "light" | "blue" }) {
-  const styles = {
-    dark: "bg-ink text-white hover:bg-blue",
-    blue: "bg-gradient-to-r from-blue to-sky text-white",
-    light: "bg-white/80 text-ink border border-line backdrop-blur hover:bg-white",
-  }[variant];
+export function Button({ href, children, variant = "primary" }: { href: string; children: React.ReactNode; variant?: "primary" | "white" | "lemon" }) {
+  const styles = { primary: "bg-cobalt text-white", white: "bg-white text-ink", lemon: "bg-lemon text-ink" }[variant];
   return (
     <Magnetic>
-      <a href={href} className={`group inline-flex items-center gap-3 rounded-full px-7 py-4 text-sm font-medium shadow-lg shadow-blue/10 transition-colors ${styles}`}>
+      <a href={href} className={`group lift inline-flex items-center gap-3 rounded-full border-2 border-ink px-7 py-3.5 text-sm font-bold shadow-[4px_4px_0_var(--ink)] ${styles}`}>
         {children}
         <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
       </a>

@@ -1,20 +1,26 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { motion, useScroll, useTransform } from "motion/react";
+import { motion } from "motion/react";
 import { brand } from "@/lib/content";
 import { Button } from "./Magnetic";
-import { SplitText } from "./Text";
 
 const Scene3D = dynamic(() => import("./Scene3D"), { ssr: false });
 
-function Chip({ className, delay, children, drift = 10 }: { className: string; delay: number; children: React.ReactNode; drift?: number }) {
+const ease = [0.22, 1, 0.36, 1] as const;
+const rise = (i: number) => ({ initial: { y: "112%" }, animate: { y: 0 }, transition: { delay: 0.25 + i * 0.12, duration: 0.9, ease } });
+
+function Mask({ children }: { children: React.ReactNode }) {
+  return <span className="block overflow-hidden pb-[0.12em]">{children}</span>;
+}
+
+function Sticker({ className, delay, rotate, children }: { className: string; delay: number; rotate: number; children: React.ReactNode }) {
   return (
     <motion.div
-      className={`glass absolute z-10 rounded-2xl p-4 ${className}`}
-      initial={{ opacity: 0, scale: 0.8, y: 30 }}
-      animate={{ opacity: 1, scale: 1, y: [0, -drift, 0] }}
-      transition={{ opacity: { delay, duration: 0.6 }, scale: { delay, duration: 0.6 }, y: { delay, duration: 5 + delay, repeat: Infinity, ease: "easeInOut" } }}
+      className={`brut-sm absolute z-10 px-4 py-3 ${className}`}
+      initial={{ opacity: 0, scale: 0.6, rotate: 0 }}
+      animate={{ opacity: 1, scale: 1, rotate, y: [0, -8, 0] }}
+      transition={{ opacity: { delay }, scale: { delay, type: "spring", stiffness: 200, damping: 12 }, rotate: { delay, type: "spring" }, y: { delay: delay + 0.5, duration: 4 + delay, repeat: Infinity, ease: "easeInOut" } }}
     >
       {children}
     </motion.div>
@@ -22,107 +28,92 @@ function Chip({ className, delay, children, drift = 10 }: { className: string; d
 }
 
 export function Hero() {
-  const { scrollY } = useScroll();
-  const y = useTransform(scrollY, [0, 700], [0, 140]);
-  const fade = useTransform(scrollY, [0, 600], [1, 0]);
-  const textY = useTransform(scrollY, [0, 700], [0, -60]);
-
   return (
-    <section id="top" className="relative flex min-h-screen items-center overflow-hidden">
-      <motion.div style={{ y, opacity: fade }} className="absolute inset-0">
-        <Scene3D />
-      </motion.div>
+    <section id="top" className="relative overflow-hidden px-5 pb-20 pt-28 lg:pt-32">
+      <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.05fr_1fr]">
+        {/* copy */}
+        <div className="relative z-10">
+          <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="brut-sm mb-6 inline-flex items-center gap-2 rounded-full bg-white px-4 py-1.5 text-xs font-bold uppercase tracking-[0.16em]">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-tang opacity-70" />
+              <span className="relative h-2 w-2 rounded-full bg-tang" />
+            </span>
+            Tezpur · Bangalore
+          </motion.p>
 
-      {/* halo + orbit lines centred on the 3D object */}
-      <div className="pointer-events-none absolute left-1/2 top-[19%] h-0 w-0 lg:left-[78%] lg:top-1/2" aria-hidden>
-        <motion.div
-          className="absolute -left-[17rem] -top-[17rem] h-[34rem] w-[34rem] rounded-full opacity-60 blur-3xl max-lg:-left-[11rem] max-lg:-top-[11rem] max-lg:h-[22rem] max-lg:w-[22rem]"
-          style={{ background: "conic-gradient(from 0deg, #2f9bf2, #7c8cff, #bfe9ff, #2f9bf2)" }}
-          animate={{ rotate: 360 }}
-          transition={{ duration: 24, repeat: Infinity, ease: "linear" }}
-        />
-        {[22, 30, 38].map((r, i) => (
-          <motion.div
-            key={r}
-            className="absolute rounded-full border border-dashed border-blue/20 max-lg:hidden"
-            style={{ width: `${r}rem`, height: `${r}rem`, left: `-${r / 2}rem`, top: `-${r / 2}rem` }}
-            animate={{ rotate: i % 2 ? -360 : 360 }}
-            transition={{ duration: 50 + i * 20, repeat: Infinity, ease: "linear" }}
-          >
-            <span className="absolute -top-1 left-1/2 h-2 w-2 rounded-full bg-sky shadow-[0_0_14px_3px_rgba(47,155,242,.7)]" />
+          <h1 className="font-display text-[3.3rem] font-extrabold leading-[0.92] tracking-[-0.045em] sm:text-[4.6rem] lg:text-[5.3rem]">
+            <Mask><motion.span className="block" {...rise(0)}>One team for</motion.span></Mask>
+            <Mask>
+              <motion.span className="relative z-0 inline-block" {...rise(1)}>
+                <motion.span className="absolute -inset-x-2 bottom-[0.06em] top-[0.42em] -z-10 origin-left -skew-x-6 bg-lemon" initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ delay: 1.1, duration: 0.7, ease }} />
+                Digital,
+              </motion.span>
+            </Mask>
+            <Mask>
+              <motion.span className="block" {...rise(2)}>
+                <span className="relative inline-block font-serif font-normal italic tracking-[-0.02em] text-cobalt">
+                  Trading
+                  <svg viewBox="0 0 220 14" className="absolute -bottom-1 left-0 h-3 w-full" fill="none" preserveAspectRatio="none" aria-hidden>
+                    <motion.path d="M2 9 C 20 0, 36 14, 56 7 S 92 1, 112 8 S 150 14, 168 6 S 200 2, 218 8" stroke="#ff7a45" strokeWidth="4" strokeLinecap="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay: 1.3, duration: 0.9 }} />
+                  </svg>
+                </span>{" "}
+                &amp;
+              </motion.span>
+            </Mask>
+            <Mask><motion.span className="block" {...rise(3)}>Accounts.</motion.span></Mask>
+          </h1>
+
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.2, duration: 0.8 }} className="mt-8 max-w-md text-lg leading-relaxed text-ink/75">
+            {brand.sub}
+          </motion.p>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.4, duration: 0.8 }} className="mt-9 flex flex-wrap gap-4">
+            <Button href="#contact" variant="primary">Get a custom quote</Button>
+            <Button href="#departments" variant="white">See what we build</Button>
           </motion.div>
-        ))}
-      </div>
-
-      {/* floating glass UI chips (mirrors the CRM/ERP, GST and growth story) */}
-      <Chip className="right-[1%] top-[13%] hidden lg:block" delay={1.4} drift={12}>
-        <p className="text-[11px] uppercase tracking-widest text-muted">Monthly revenue</p>
-        <p className="font-display text-2xl font-bold">₹ 24.6L <span className="text-sm text-emerald-500">▲ 18%</span></p>
-        <svg viewBox="0 0 120 32" className="mt-2 h-8 w-32" fill="none">
-          <motion.path d="M2 28 C20 24 26 10 44 14 S72 24 86 10 108 6 118 4" stroke="#2f9bf2" strokeWidth="2.5" strokeLinecap="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay: 1.8, duration: 1.6, repeat: Infinity, repeatDelay: 2 }} />
-        </svg>
-      </Chip>
-      <Chip className="right-[24%] bottom-[13%] hidden lg:block" delay={1.7} drift={8}>
-        <div className="flex items-center gap-3">
-          <span className="grid h-9 w-9 place-items-center rounded-full bg-emerald-100 text-emerald-600">✓</span>
-          <div>
-            <p className="text-sm font-semibold">GST filed on time</p>
-            <p className="text-xs text-muted">TDS reconciled · ITR submitted</p>
-          </div>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.8 }} className="mt-10 flex items-center gap-4">
+            <div className="flex -space-x-3">
+              {[["D", "bg-lilac"], ["T", "bg-lemon"], ["A", "bg-mint"]].map(([l, c]) => (
+                <span key={l} className={`grid h-10 w-10 place-items-center rounded-full border-2 border-ink font-display text-sm font-extrabold ${c}`}>{l}</span>
+              ))}
+            </div>
+            <p className="text-sm leading-snug text-ink/70"><b className="text-ink">500+ businesses</b> trust DTA<br />across Digital, Trading &amp; Accounts</p>
+          </motion.div>
         </div>
-      </Chip>
-      <Chip className="right-[2%] bottom-[24%] hidden xl:block" delay={2} drift={14}>
-        <p className="text-[11px] uppercase tracking-widest text-muted">New lead</p>
-        <p className="text-sm font-semibold">Rahul Traders</p>
-        <p className="text-xs text-sky">just now <span className="ml-1 animate-pulse">●</span></p>
-      </Chip>
 
-      <motion.div style={{ y: textY }} className="relative z-20 mx-auto w-full max-w-6xl px-5 pb-16 pt-72 sm:pt-28 sm:pb-0">
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="glass mb-7 inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-medium uppercase tracking-[0.18em] text-muted"
-        >
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky opacity-70" />
-            <span className="relative h-2 w-2 rounded-full bg-sky" />
-          </span>
-          Tezpur · Bangalore
-        </motion.p>
-        <h1 className="font-display max-w-3xl text-5xl font-bold leading-[0.98] tracking-[-0.03em] sm:text-7xl lg:text-[4.75rem]">
-          <SplitText text={brand.headline.join(" ")} delay={0.4} gradient={[3, 4]} />
-        </h1>
-        <motion.p
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.2, duration: 0.8 }}
-          className="mt-8 max-w-xl text-lg text-muted"
-        >
-          {brand.sub}
-        </motion.p>
-        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.4, duration: 0.8 }} className="mt-10 flex flex-wrap gap-4">
-          <Button href="#contact" variant="dark">Get a custom quote</Button>
-          <Button href="#departments" variant="light">See what we build</Button>
-        </motion.div>
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.7, duration: 0.8 }} className="mt-10 flex items-center gap-4">
-          <div className="flex -space-x-3">
-            {["D", "T", "A"].map((l, i) => (
-              <span key={l} className="grid h-10 w-10 place-items-center rounded-full border-2 border-white font-display text-sm font-bold text-white shadow-md" style={{ background: ["linear-gradient(135deg,#0b5fcc,#2f9bf2)", "linear-gradient(135deg,#2f9bf2,#7c8cff)", "linear-gradient(135deg,#7c8cff,#0b5fcc)"][i] }}>{l}</span>
-            ))}
-          </div>
-          <p className="text-sm text-muted"><span className="font-semibold text-ink">500+ businesses</span> trust DTA<br />across Digital, Trading &amp; Accounts</p>
-        </motion.div>
-      </motion.div>
+        {/* 3D stage */}
+        <div className="relative mx-auto w-full max-w-[34rem]">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.92, rotate: 3 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            transition={{ delay: 0.3, duration: 0.9, ease }}
+            className="brut dots relative aspect-[1/1.05] overflow-hidden bg-[linear-gradient(160deg,#bfe3ff_0%,#e4dcff_55%,#ffe9a8_100%)]"
+          >
+            <Scene3D />
+          </motion.div>
 
-      <motion.div
-        className="absolute bottom-8 left-1/2 z-20 hidden -translate-x-1/2 flex-col items-center gap-2 text-xs uppercase tracking-widest text-muted sm:flex"
-        animate={{ y: [0, 8, 0] }}
-        transition={{ duration: 2, repeat: Infinity }}
-      >
-        Scroll
-        <span className="h-8 w-px bg-gradient-to-b from-muted to-transparent" />
-      </motion.div>
+          {/* rotating free-offer badge */}
+          <motion.div className="absolute -left-6 -top-8 z-20 hidden h-28 w-28 sm:block" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 1.6, type: "spring" }}>
+            <svg viewBox="0 0 120 120" className="h-full w-full animate-[spin_16s_linear_infinite]" aria-hidden>
+              <defs><path id="ring" d="M60,60 m-45,0 a45,45 0 1,1 90,0 a45,45 0 1,1 -90,0" /></defs>
+              <circle cx="60" cy="60" r="58" fill="#ffd84a" stroke="#15120e" strokeWidth="2.5" />
+              <text fontSize="10.5" fontWeight="800" fill="#15120e"><textPath href="#ring" textLength="272" lengthAdjust="spacing">FREE FIRST MONTH • FREE FIRST MONTH • </textPath></text>
+            </svg>
+            <span className="absolute inset-0 grid place-items-center font-display text-2xl font-extrabold">₹0</span>
+          </motion.div>
+
+          <Sticker className="-right-3 top-10 hidden bg-white sm:block" delay={1.5} rotate={5}>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-ink/60">Monthly revenue</p>
+            <p className="font-display text-xl font-extrabold">₹ 24.6L <span className="text-sm text-emerald-600">▲ 18%</span></p>
+          </Sticker>
+          <Sticker className="-left-4 bottom-12 bg-mint" delay={1.8} rotate={-4}>
+            <p className="flex items-center gap-2 text-sm font-bold"><span className="grid h-6 w-6 place-items-center rounded-full bg-ink text-xs text-white">✓</span> GST filed on time</p>
+          </Sticker>
+          <Sticker className="-bottom-5 right-6 bg-peach" delay={2.1} rotate={3}>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-ink/60">New lead</p>
+            <p className="text-sm font-bold">Rahul Traders <span className="ml-1 animate-pulse text-cobalt">●</span></p>
+          </Sticker>
+        </div>
+      </div>
     </section>
   );
 }

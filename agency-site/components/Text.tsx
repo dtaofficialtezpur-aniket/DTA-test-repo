@@ -3,19 +3,18 @@
 import { motion, MotionValue, useInView, useScroll, useTransform } from "motion/react";
 import { useRef } from "react";
 
-/** Words slide up from a mask, staggered. Words listed in `gradient` get the animated gradient. */
-export function SplitText({ text, className, delay = 0, gradient = [], inView = false }: { text: string; className?: string; delay?: number; gradient?: number[]; inView?: boolean }) {
+/** Words rise from a mask. `serif` lists word indices set in the italic serif accent. */
+export function SplitText({ text, className, delay = 0, serif = [], inView = false }: { text: string; className?: string; delay?: number; serif?: number[]; inView?: boolean }) {
   const words = text.split(" ");
-  // observe the (unclipped) wrapper, not the masked children, or the trigger never fires
   const ref = useRef<HTMLSpanElement>(null);
   const seen = useInView(ref, { once: true, margin: "-60px" });
   const show = inView ? seen : true;
   return (
     <span ref={ref} className={className} aria-label={text}>
       {words.map((w, i) => (
-        <span key={i} className="inline-block overflow-hidden pb-[0.12em] pr-[0.22em] align-bottom" aria-hidden>
+        <span key={i} className="inline-block overflow-hidden pb-[0.14em] pr-[0.22em] align-bottom" aria-hidden>
           <motion.span
-            className={`inline-block ${gradient.includes(i) ? "text-gradient" : ""}`}
+            className={`inline-block ${serif.includes(i) ? "font-serif font-normal italic text-cobalt" : ""}`}
             initial={{ y: "115%" }}
             animate={{ y: show ? 0 : "115%" }}
             transition={{ delay: delay + i * 0.07, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
@@ -29,11 +28,10 @@ export function SplitText({ text, className, delay = 0, gradient = [], inView = 
 }
 
 function Word({ w, progress, range }: { w: string; progress: MotionValue<number>; range: [number, number] }) {
-  const opacity = useTransform(progress, range, [0.14, 1]);
+  const opacity = useTransform(progress, range, [0.15, 1]);
   return <motion.span style={{ opacity }} className="mr-[0.25em] inline-block">{w}</motion.span>;
 }
 
-/** Text that fills in word-by-word as you scroll past it. */
 export function ScrollText({ text, className }: { text: string; className?: string }) {
   const ref = useRef<HTMLParagraphElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start 0.85", "end 0.45"] });
@@ -47,20 +45,19 @@ export function ScrollText({ text, className }: { text: string; className?: stri
   );
 }
 
-export function Heading({ kicker, title, center = false }: { kicker: string; title: string; center?: boolean }) {
+export function Heading({ kicker, title, serif = [], color = "bg-lemon" }: { kicker: string; title: string; serif?: number[]; color?: string }) {
   return (
-    <div className={`mb-14 max-w-3xl ${center ? "mx-auto text-center" : ""}`}>
+    <div className="mb-14 max-w-3xl">
       <motion.p
-        initial={{ opacity: 0, x: -20 }}
-        whileInView={{ opacity: 1, x: 0 }}
+        initial={{ opacity: 0, rotate: -6, y: 10 }}
+        whileInView={{ opacity: 1, rotate: -2, y: 0 }}
         viewport={{ once: true }}
-        className="mb-4 inline-flex items-center gap-2 rounded-full border border-line bg-white/70 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.18em] text-blue backdrop-blur"
+        className={`brut-sm mb-5 inline-block rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-[0.16em] ${color}`}
       >
-        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-sky" />
         {kicker}
       </motion.p>
-      <h2 className="font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
-        <SplitText text={title} inView />
+      <h2 className="font-display text-4xl font-extrabold leading-[0.98] tracking-[-0.035em] sm:text-5xl lg:text-6xl">
+        <SplitText text={title} inView serif={serif} />
       </h2>
     </div>
   );

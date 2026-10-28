@@ -6,54 +6,77 @@ import { brand, founder, marquee, offers, process, stats, why, wa } from "@/lib/
 import { Counter } from "./Counter";
 import { Reveal } from "./Reveal";
 import { Heading, ScrollText } from "./Text";
-import { TiltCard } from "./TiltCard";
 
-export function Marquee() {
-  const row = [...marquee, ...marquee];
+function Band({ items, className, dir }: { items: string[]; className: string; dir: "l" | "r" }) {
+  const row = [...items, ...items, ...items, ...items];
   return (
-    <div className="space-y-4 overflow-hidden border-y border-line bg-white/50 py-8 backdrop-blur" aria-hidden>
-      <div className="marquee-l flex w-max gap-10 whitespace-nowrap font-display text-5xl font-bold">
-        {[...row, ...row].map((t, i) => (
-          <span key={i} className="flex items-center gap-10">
-            <span className={i % 2 ? "outline-text" : ""}>{t}</span>
-            <span className="text-sky">✦</span>
-          </span>
-        ))}
-      </div>
-      <div className="marquee-r flex w-max gap-10 whitespace-nowrap font-display text-5xl font-bold">
-        {[...row.slice().reverse(), ...row].map((t, i) => (
-          <span key={i} className="flex items-center gap-10">
-            <span className={i % 2 ? "" : "outline-text"}>{t}</span>
-            <span className="text-violet">✦</span>
-          </span>
+    <div className={`overflow-hidden border-y-2 border-ink py-4 ${className}`} aria-hidden>
+      <div className={`marquee-${dir} flex w-max gap-8 whitespace-nowrap font-display text-3xl font-extrabold uppercase tracking-tight sm:text-4xl`}>
+        {row.map((t, i) => (
+          <span key={i} className="flex items-center gap-8">{t}<span className="text-tang">✺</span></span>
         ))}
       </div>
     </div>
   );
 }
 
+export function Marquee() {
+  return (
+    <div className="relative my-10 h-40 overflow-hidden sm:h-44">
+      <div className="absolute inset-x-[-5%] top-2 rotate-[2deg]"><Band items={[...marquee].reverse()} dir="r" className="bg-lemon" /></div>
+      <div className="absolute inset-x-[-5%] top-12 -rotate-[2deg]"><Band items={marquee} dir="l" className="bg-ink text-paper" /></div>
+    </div>
+  );
+}
+
+const ticketTones = ["bg-lemon", "bg-mint", "bg-lilac"];
+const tilts = [-1.5, 1, -1];
+
 export function Offers() {
   return (
-    <section id="offers" className="mx-auto max-w-6xl px-5 py-28">
-      <Heading kicker="New-client offers" title="Start with zero risk." />
-      <div className="grid gap-5 md:grid-cols-3">
+    <section id="offers" className="mx-auto max-w-6xl px-5 py-24">
+      <Heading kicker="New-client offers" title="Start with zero risk." serif={[3, 4]} color="bg-mint" />
+      <div className="grid gap-8 md:grid-cols-3">
         {offers.map((o, i) => (
           <Reveal key={o.title} delay={i * 0.1} className="h-full">
-            <TiltCard className="card shimmer flex h-full flex-col p-8">
-              <p className="text-xs font-medium uppercase tracking-widest text-muted">{o.tag}</p>
-              <motion.p className="font-display mt-6 text-7xl font-bold text-gradient" animate={{ rotate: [-2, 2, -2] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}>
-                FREE
-              </motion.p>
-              <h3 className="font-display mt-2 text-xl font-semibold">{o.title}</h3>
-              <p className="mt-3 flex-1 text-sm text-muted">{o.body}</p>
-              <a href={wa(o.msg)} className="group mt-6 inline-flex items-center gap-2 text-sm font-medium text-blue">
-                Claim on WhatsApp <span className="transition-transform group-hover:translate-x-1">→</span>
-              </a>
-            </TiltCard>
+            <motion.div whileHover={{ rotate: 0, y: -6 }} initial={{ rotate: tilts[i] }} className={`brut relative flex h-full flex-col overflow-hidden ${ticketTones[i]}`}>
+              <div className="p-7 pb-6">
+                <p className="text-[11px] font-extrabold uppercase tracking-widest text-ink/60">{o.tag}</p>
+                <motion.p className="font-display mt-4 text-7xl font-extrabold leading-none tracking-tighter" animate={{ rotate: [-2, 2, -2] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}>FREE</motion.p>
+                <h3 className="font-display mt-2 text-xl font-extrabold">{o.title}</h3>
+              </div>
+              {/* perforation */}
+              <div className="relative border-t-2 border-dashed border-ink">
+                <span className="absolute -left-3 -top-3 h-6 w-6 rounded-full border-2 border-ink bg-paper" />
+                <span className="absolute -right-3 -top-3 h-6 w-6 rounded-full border-2 border-ink bg-paper" />
+              </div>
+              <div className="flex flex-1 flex-col p-7 pt-6">
+                <p className="flex-1 text-sm text-ink/75">{o.body}</p>
+                <a href={wa(o.msg)} className="group mt-5 inline-flex items-center gap-2 text-sm font-extrabold underline decoration-2 underline-offset-4">
+                  Claim on WhatsApp <span className="transition-transform group-hover:translate-x-1">→</span>
+                </a>
+              </div>
+            </motion.div>
           </Reveal>
         ))}
       </div>
     </section>
+  );
+}
+
+function Step({ i, progress, p }: { i: number; progress: ReturnType<typeof useSpring>; p: { step: string; body: string } }) {
+  const bg = useTransform(progress, [i / 4 - 0.05, i / 4 + 0.08], ["#ffffff", "#1f4fe8"]);
+  const color = useTransform(progress, [i / 4 - 0.05, i / 4 + 0.08], ["#15120e", "#ffffff"]);
+  return (
+    <li className="relative pl-16 md:pl-0 md:pt-16">
+      <motion.span style={{ backgroundColor: bg, color }} className="absolute left-0 top-0 grid h-12 w-12 place-items-center rounded-full border-2 border-ink font-display text-lg font-extrabold shadow-[3px_3px_0_var(--ink)]">
+        {i + 1}
+      </motion.span>
+      <Reveal>
+        <h3 className="font-display text-xl font-extrabold tracking-tight">{p.step}</h3>
+        <p className="mt-2 text-sm text-ink/70">{p.body}</p>
+      </Reveal>
+    </li>
   );
 }
 
@@ -63,87 +86,73 @@ export function Process() {
   const line = useSpring(scrollYProgress, { stiffness: 90, damping: 24 });
   return (
     <section id="process" className="mx-auto max-w-6xl px-5 pb-28">
-      <Heading kicker="How it works" title="Our process, step by step." />
+      <Heading kicker="How it works" title="Our process, step by step." serif={[3, 4]} color="bg-peach" />
       <div ref={ref} className="relative">
-        <div className="absolute left-5 top-0 h-full w-0.5 bg-line md:left-0 md:top-5 md:h-0.5 md:w-full" />
-        <motion.div style={{ scaleY: line }} className="absolute left-5 top-0 h-full w-0.5 origin-top bg-gradient-to-b from-blue to-sky md:hidden" />
-        <motion.div style={{ scaleX: line }} className="absolute left-0 top-5 hidden h-0.5 w-full origin-left bg-gradient-to-r from-blue to-sky md:block" />
+        <div className="absolute left-6 top-0 h-full w-2 rounded-full border-2 border-ink bg-white md:left-0 md:top-5 md:h-2 md:w-full" />
+        <motion.div style={{ scaleY: line }} className="absolute left-6 top-0 h-full w-2 origin-top rounded-full bg-cobalt md:hidden" />
+        <motion.div style={{ scaleX: line }} className="absolute left-0 top-5 hidden h-2 w-full origin-left rounded-full bg-cobalt md:block" />
         <ol className="grid gap-10 md:grid-cols-4 md:gap-6">
-          {process.map((p, i) => (
-            <Step key={p.step} i={i} progress={line} p={p} />
-          ))}
+          {process.map((p, i) => <Step key={p.step} i={i} progress={line} p={p} />)}
         </ol>
       </div>
     </section>
   );
 }
 
-function Step({ i, progress, p }: { i: number; progress: ReturnType<typeof useSpring>; p: { step: string; body: string } }) {
-  const bg = useTransform(progress, [i / 4 - 0.05, i / 4 + 0.08], ["#ffffff", "#0b5fcc"]);
-  const color = useTransform(progress, [i / 4 - 0.05, i / 4 + 0.08], ["#0a1530", "#ffffff"]);
-  return (
-    <li className="relative pl-14 md:pl-0 md:pt-14">
-      <motion.span style={{ backgroundColor: bg, color }} className="absolute left-0 top-0 grid h-10 w-10 place-items-center rounded-full border border-line font-display font-bold shadow-lg shadow-blue/10">
-        {i + 1}
-      </motion.span>
-      <Reveal>
-        <h3 className="font-display text-xl font-semibold">{p.step}</h3>
-        <p className="mt-2 text-sm text-muted">{p.body}</p>
-      </Reveal>
-    </li>
-  );
-}
-
 export function Why() {
+  const tones = ["bg-sky", "bg-lemon", "bg-mint", "bg-lilac"];
   return (
-    <section className="relative border-y border-line bg-white/50 backdrop-blur">
-      <div className="mx-auto max-w-6xl px-5 py-24">
-        <Heading kicker="Why DTA" title="Why businesses trust us." />
-        <div className="mb-20 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+    <section className="px-5 pb-28">
+      <div className="mx-auto max-w-6xl">
+        <Heading kicker="Why DTA" title="Why businesses trust us." serif={[2, 3]} color="bg-lemon" />
+        <div className="mb-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {why.map((w, i) => (
             <Reveal key={w.t} delay={i * 0.08} className="h-full">
-              <div className="card h-full p-6">
-                <span className="mb-4 grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-blue to-sky text-white">{i + 1}</span>
-                <h3 className="font-display font-semibold">{w.t}</h3>
-                <p className="mt-2 text-sm text-muted">{w.d}</p>
+              <div className={`brut lift h-full p-6 ${tones[i]}`}>
+                <span className="font-serif text-6xl italic leading-none">{i + 1}</span>
+                <h3 className="font-display mt-3 text-lg font-extrabold">{w.t}</h3>
+                <p className="mt-2 text-sm text-ink/75">{w.d}</p>
               </div>
             </Reveal>
           ))}
         </div>
-        <dl className="grid grid-cols-2 gap-10 md:grid-cols-4">
-          {stats.map((s) => (
-            <div key={s.label}>
-              <dd className="font-display text-6xl font-bold text-gradient sm:text-7xl">
-                <Counter to={s.value} suffix={s.suffix} />
-              </dd>
-              <dt className="mt-2 text-sm text-muted">{s.label}</dt>
-            </div>
-          ))}
-        </dl>
+        <div className="brut bg-ink p-8 text-paper sm:p-12">
+          <dl className="grid grid-cols-2 gap-10 md:grid-cols-4">
+            {stats.map((s, i) => (
+              <div key={s.label}>
+                <dd className="font-display text-6xl font-extrabold tracking-tighter sm:text-7xl" style={{ color: ["#ffd84a", "#7ee2b8", "#c9b8ff", "#ff7a45"][i] }}>
+                  <Counter to={s.value} suffix={s.suffix} />
+                </dd>
+                <dt className="mt-2 text-sm text-paper/70">{s.label}</dt>
+              </div>
+            ))}
+          </dl>
+        </div>
       </div>
     </section>
   );
 }
 
 export function About() {
+  const tones = ["bg-peach", "bg-sky", "bg-lilac"];
   return (
-    <section id="about" className="mx-auto max-w-6xl px-5 py-28">
-      <Heading kicker="Our story" title="Built by professionals. Trusted by businesses." />
-      <ScrollText text={founder.story.join(" ")} className="font-display text-2xl font-semibold leading-snug sm:text-4xl" />
+    <section id="about" className="mx-auto max-w-6xl px-5 pb-28">
+      <Heading kicker="Our story" title="Built by professionals. Trusted by businesses." serif={[3, 4]} color="bg-tang" />
+      <ScrollText text={founder.story.join(" ")} className="font-display text-2xl font-bold leading-snug tracking-tight sm:text-4xl" />
       <Reveal className="mt-8 flex items-center gap-4">
-        <span className="grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-blue to-sky font-display text-xl font-bold text-white">AP</span>
+        <span className="grid h-14 w-14 -rotate-6 place-items-center rounded-full border-2 border-ink bg-lemon font-display text-lg font-extrabold shadow-[3px_3px_0_var(--ink)]">AP</span>
         <div>
-          <p className="font-display text-lg font-semibold">{founder.name}</p>
-          <p className="text-sm text-muted">{founder.role}</p>
+          <p className="font-display text-lg font-extrabold">{founder.name}</p>
+          <p className="text-sm text-ink/60">{founder.role}</p>
         </div>
       </Reveal>
-      <div className="mt-16 grid gap-5 md:grid-cols-3">
+      <div className="mt-16 grid gap-6 md:grid-cols-3">
         {founder.values.map((v, i) => (
           <Reveal key={v.t} delay={i * 0.1} className="h-full">
-            <TiltCard className="card h-full p-7">
-              <h3 className="font-display text-xl font-semibold text-gradient">{v.t}</h3>
-              <p className="mt-2 text-sm text-muted">{v.d}</p>
-            </TiltCard>
+            <div className={`brut lift h-full p-7 ${tones[i]}`}>
+              <h3 className="font-serif text-4xl italic">{v.t}</h3>
+              <p className="mt-3 text-sm text-ink/80">{v.d}</p>
+            </div>
           </Reveal>
         ))}
       </div>
@@ -153,7 +162,7 @@ export function About() {
 
 export function Contact() {
   const [sent, setSent] = useState(false);
-  const field = "mt-1 w-full rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-white placeholder:text-white/40 backdrop-blur";
+  const field = "mt-1 w-full rounded-xl border-2 border-ink bg-white px-4 py-3 text-ink";
 
   function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -164,44 +173,43 @@ export function Contact() {
   }
 
   return (
-    <section id="contact" className="mx-auto max-w-6xl px-5 pb-28 pt-10">
+    <section id="contact" className="mx-auto max-w-6xl px-5 pb-24">
       <Reveal>
-        <div className="relative overflow-hidden rounded-[2.5rem] bg-ink p-8 text-white sm:p-14">
-          <div className="blob blob-a -right-20 -top-20 h-80 w-80 bg-blue" />
-          <div className="blob blob-b -bottom-24 -left-10 h-80 w-80 bg-violet" />
-          <div className="blob blob-c right-1/3 top-1/2 h-60 w-60 bg-sky/60" />
+        <div className="brut relative overflow-hidden bg-cobalt p-8 text-white sm:p-14">
+          <motion.span className="absolute -right-10 -top-10 h-44 w-44 rounded-full border-2 border-ink bg-lemon" animate={{ y: [0, 12, 0] }} transition={{ duration: 6, repeat: Infinity }} />
+          <motion.span className="absolute -bottom-10 right-1/3 h-24 w-24 rotate-12 rounded-2xl border-2 border-ink bg-tang" animate={{ rotate: [12, 24, 12] }} transition={{ duration: 7, repeat: Infinity }} />
           <div className="relative grid gap-12 md:grid-cols-2">
             <div>
-              <h2 className="font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl">
-                Ready to take your business <span className="bg-gradient-to-r from-ice to-sky bg-clip-text text-transparent">forward?</span>
+              <h2 className="font-display text-4xl font-extrabold leading-[0.98] tracking-[-0.035em] sm:text-6xl">
+                Ready to take your business <span className="font-serif font-normal italic text-lemon">forward?</span>
               </h2>
-              <p className="mt-4 text-white/70">Free consultation — no obligation, no hidden charges. We reply within 24 hours. {brand.hours}.</p>
+              <p className="mt-4 text-white/80">Free consultation — no obligation, no hidden charges. We reply within 24 hours. {brand.hours}.</p>
               <ul className="mt-8 space-y-2">
-                <li><a className="text-lg font-medium hover:text-ice" href={brand.phoneHref}>{brand.phone}</a></li>
-                <li><a className="text-white/80 hover:text-ice" href={`mailto:${brand.email}`}>{brand.email}</a></li>
+                <li><a className="font-display text-2xl font-extrabold hover:text-lemon" href={brand.phoneHref}>{brand.phone}</a></li>
+                <li><a className="text-white/90 hover:text-lemon" href={`mailto:${brand.email}`}>{brand.email}</a></li>
               </ul>
-              <div className="mt-8 grid gap-6 sm:grid-cols-2">
+              <div className="mt-8 grid gap-4 sm:grid-cols-2">
                 {brand.offices.map((o) => (
-                  <address key={o.city} className="text-sm not-italic text-white/65">
-                    <p className="mb-1 font-semibold text-white">{o.city} office</p>
-                    {o.lines.map((l) => <span key={l} className="block">{l}</span>)}
+                  <address key={o.city} className="brut-sm bg-paper p-4 text-sm not-italic text-ink">
+                    <p className="mb-1 font-extrabold">{o.city} office</p>
+                    {o.lines.map((l) => <span key={l} className="block text-ink/70">{l}</span>)}
                   </address>
                 ))}
               </div>
             </div>
-            <form className="space-y-4" onSubmit={submit}>
-              <label className="block text-sm text-white/70">Full name *<input name="name" required className={field} /></label>
-              <label className="block text-sm text-white/70">Phone *<input name="phone" type="tel" required className={field} /></label>
-              <label className="block text-sm text-white/70">Department
+            <form className="brut-sm space-y-4 self-start bg-paper p-6 text-ink" onSubmit={submit}>
+              <label className="block text-sm font-bold">Full name *<input name="name" required className={field} /></label>
+              <label className="block text-sm font-bold">Phone *<input name="phone" type="tel" required className={field} /></label>
+              <label className="block text-sm font-bold">Department
                 <select name="dept" className={field} defaultValue="Not sure">
-                  {["Digital", "Trading", "Accounts", "Not sure"].map((d) => <option key={d} className="text-ink">{d}</option>)}
+                  {["Digital", "Trading", "Accounts", "Not sure"].map((d) => <option key={d}>{d}</option>)}
                 </select>
               </label>
-              <label className="block text-sm text-white/70">Message<textarea name="message" rows={3} className={field} /></label>
-              <button className="group inline-flex items-center gap-3 rounded-full bg-white px-7 py-3.5 font-medium text-ink transition hover:bg-ice">
+              <label className="block text-sm font-bold">Message<textarea name="message" rows={3} className={field} /></label>
+              <button className="group lift inline-flex items-center gap-3 rounded-full border-2 border-ink bg-lemon px-7 py-3.5 font-bold shadow-[4px_4px_0_var(--ink)]">
                 Request a call back <span className="transition-transform group-hover:translate-x-1">→</span>
               </button>
-              {sent && <p className="text-sm text-ice" role="status">Opening WhatsApp — we&apos;ll contact you within 24 hours.</p>}
+              {sent && <p className="text-sm font-semibold text-cobalt" role="status">Opening WhatsApp — we&apos;ll contact you within 24 hours.</p>}
             </form>
           </div>
         </div>
@@ -212,13 +220,16 @@ export function Contact() {
 
 export function Footer() {
   return (
-    <footer className="border-t border-line py-10 text-center text-sm text-muted">
-      <div className="mb-4 flex justify-center gap-6">
-        {brand.social.map((s) => (
-          <a key={s.label} href={s.href} className="hover:text-ink" target="_blank" rel="noopener noreferrer">{s.label}</a>
-        ))}
+    <footer className="overflow-hidden border-t-2 border-ink bg-ink text-paper">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 pt-10 text-sm">
+        <p>© 2026 DTA — {brand.full} · Tezpur, Assam · Bangalore, Karnataka</p>
+        <div className="flex gap-6">
+          {brand.social.map((s) => <a key={s.label} href={s.href} className="font-bold hover:text-lemon" target="_blank" rel="noopener noreferrer">{s.label}</a>)}
+        </div>
       </div>
-      © 2026 DTA — {brand.full}. Tezpur, Assam · Bangalore, Karnataka
+      <p className="select-none whitespace-nowrap text-center font-display text-[30vw] font-extrabold leading-[0.8] tracking-[-0.06em] text-paper/95 sm:text-[26vw]" aria-hidden>
+        DTA<span className="text-tang">.</span>
+      </p>
     </footer>
   );
 }
