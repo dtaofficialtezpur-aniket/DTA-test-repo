@@ -33,15 +33,36 @@ export function Hero() {
         <Scene3D />
       </motion.div>
 
+      {/* halo + orbit lines centred on the 3D object */}
+      <div className="pointer-events-none absolute left-1/2 top-[19%] h-0 w-0 lg:left-[78%] lg:top-1/2" aria-hidden>
+        <motion.div
+          className="absolute -left-[17rem] -top-[17rem] h-[34rem] w-[34rem] rounded-full opacity-60 blur-3xl max-lg:-left-[11rem] max-lg:-top-[11rem] max-lg:h-[22rem] max-lg:w-[22rem]"
+          style={{ background: "conic-gradient(from 0deg, #2f9bf2, #7c8cff, #bfe9ff, #2f9bf2)" }}
+          animate={{ rotate: 360 }}
+          transition={{ duration: 24, repeat: Infinity, ease: "linear" }}
+        />
+        {[22, 30, 38].map((r, i) => (
+          <motion.div
+            key={r}
+            className="absolute rounded-full border border-dashed border-blue/20 max-lg:hidden"
+            style={{ width: `${r}rem`, height: `${r}rem`, left: `-${r / 2}rem`, top: `-${r / 2}rem` }}
+            animate={{ rotate: i % 2 ? -360 : 360 }}
+            transition={{ duration: 50 + i * 20, repeat: Infinity, ease: "linear" }}
+          >
+            <span className="absolute -top-1 left-1/2 h-2 w-2 rounded-full bg-sky shadow-[0_0_14px_3px_rgba(47,155,242,.7)]" />
+          </motion.div>
+        ))}
+      </div>
+
       {/* floating glass UI chips (mirrors the CRM/ERP, GST and growth story) */}
-      <Chip className="right-[6%] top-[22%] hidden lg:block" delay={1.4} drift={12}>
+      <Chip className="right-[1%] top-[13%] hidden lg:block" delay={1.4} drift={12}>
         <p className="text-[11px] uppercase tracking-widest text-muted">Monthly revenue</p>
         <p className="font-display text-2xl font-bold">₹ 24.6L <span className="text-sm text-emerald-500">▲ 18%</span></p>
         <svg viewBox="0 0 120 32" className="mt-2 h-8 w-32" fill="none">
           <motion.path d="M2 28 C20 24 26 10 44 14 S72 24 86 10 108 6 118 4" stroke="#2f9bf2" strokeWidth="2.5" strokeLinecap="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay: 1.8, duration: 1.6, repeat: Infinity, repeatDelay: 2 }} />
         </svg>
       </Chip>
-      <Chip className="right-[30%] bottom-[16%] hidden lg:block" delay={1.7} drift={8}>
+      <Chip className="right-[24%] bottom-[13%] hidden lg:block" delay={1.7} drift={8}>
         <div className="flex items-center gap-3">
           <span className="grid h-9 w-9 place-items-center rounded-full bg-emerald-100 text-emerald-600">✓</span>
           <div>
@@ -50,7 +71,7 @@ export function Hero() {
           </div>
         </div>
       </Chip>
-      <Chip className="right-[4%] bottom-[26%] hidden xl:block" delay={2} drift={14}>
+      <Chip className="right-[2%] bottom-[24%] hidden xl:block" delay={2} drift={14}>
         <p className="text-[11px] uppercase tracking-widest text-muted">New lead</p>
         <p className="text-sm font-semibold">Rahul Traders</p>
         <p className="text-xs text-sky">just now <span className="ml-1 animate-pulse">●</span></p>
@@ -69,7 +90,7 @@ export function Hero() {
           </span>
           Tezpur · Bangalore
         </motion.p>
-        <h1 className="font-display max-w-3xl text-5xl font-bold leading-[1.02] tracking-tight sm:text-7xl">
+        <h1 className="font-display max-w-3xl text-5xl font-bold leading-[0.98] tracking-[-0.03em] sm:text-7xl lg:text-[4.75rem]">
           <SplitText text={brand.headline.join(" ")} delay={0.4} gradient={[3, 4]} />
         </h1>
         <motion.p
@@ -83,6 +104,14 @@ export function Hero() {
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.4, duration: 0.8 }} className="mt-10 flex flex-wrap gap-4">
           <Button href="#contact" variant="dark">Get a custom quote</Button>
           <Button href="#departments" variant="light">See what we build</Button>
+        </motion.div>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.7, duration: 0.8 }} className="mt-10 flex items-center gap-4">
+          <div className="flex -space-x-3">
+            {["D", "T", "A"].map((l, i) => (
+              <span key={l} className="grid h-10 w-10 place-items-center rounded-full border-2 border-white font-display text-sm font-bold text-white shadow-md" style={{ background: ["linear-gradient(135deg,#0b5fcc,#2f9bf2)", "linear-gradient(135deg,#2f9bf2,#7c8cff)", "linear-gradient(135deg,#7c8cff,#0b5fcc)"][i] }}>{l}</span>
+            ))}
+          </div>
+          <p className="text-sm text-muted"><span className="font-semibold text-ink">500+ businesses</span> trust DTA<br />across Digital, Trading &amp; Accounts</p>
         </motion.div>
       </motion.div>
 
