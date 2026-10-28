@@ -24,15 +24,15 @@ function Core() {
       <Float speed={1.6} rotationIntensity={0.6} floatIntensity={1.2}>
         <mesh>
           <icosahedronGeometry args={[1.5, 24]} />
-          <MeshDistortMaterial color="#7c5cff" distort={0.45} speed={2} roughness={0.15} metalness={0.7} />
+          <MeshDistortMaterial color="#2f9bf2" distort={0.45} speed={2} roughness={0.15} metalness={0.7} />
         </mesh>
         <mesh ref={ring} rotation={[Math.PI / 2.4, 0, 0]}>
           <torusGeometry args={[2.5, 0.015, 16, 160]} />
-          <meshBasicMaterial color="#22d3ee" />
+          <meshBasicMaterial color="#bfe9ff" />
         </mesh>
         <mesh rotation={[Math.PI / 3, Math.PI / 4, 0]}>
           <torusGeometry args={[3.1, 0.008, 16, 160]} />
-          <meshBasicMaterial color="#7c5cff" transparent opacity={0.6} />
+          <meshBasicMaterial color="#2f9bf2" transparent opacity={0.6} />
         </mesh>
       </Float>
     </group>
@@ -74,8 +74,8 @@ export default function Scene3D() {
   return (
     <Canvas camera={{ position: [0, 0, 7], fov: 50 }} dpr={[1, 1.75]} aria-hidden>
       <ambientLight intensity={0.5} />
-      <directionalLight position={[4, 4, 5]} intensity={2.2} color="#22d3ee" />
-      <pointLight position={[-5, -3, 2]} intensity={30} color="#7c5cff" />
+      <directionalLight position={[4, 4, 5]} intensity={2.2} color="#bfe9ff" />
+      <pointLight position={[-5, -3, 2]} intensity={30} color="#2f9bf2" />
       <Core />
       <Particles />
     </Canvas>

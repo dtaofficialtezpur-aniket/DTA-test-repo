@@ -12,8 +12,7 @@ npm run build
 ```
 
 ## Content
-All copy lives in `lib/content.ts` and is **placeholder** — replace it with the real
-copy from dtaonline.in (services, work, stats, contact). Colours are CSS variables in `app/globals.css`.
+All copy lives in `lib/content.ts` and comes from https://dtaonline.in (departments, offers, offices, contact, WhatsApp links). Brand colours (blue palette) are CSS variables in `app/globals.css`; fonts are Sora + Inter. The contact form opens WhatsApp with the enquiry prefilled (no backend).
 
 ## Structure
 - `components/Scene3D.tsx` — 3D hero (distorted core, orbit rings, particles, mouse parallax)

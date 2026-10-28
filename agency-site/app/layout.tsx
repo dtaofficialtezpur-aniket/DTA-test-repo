@@ -1,16 +1,20 @@
 import type { Metadata } from "next";
+import { Inter, Sora } from "next/font/google";
 import "./globals.css";
 
+const inter = Inter({ subsets: ["latin"], variable: "--f-inter" });
+const sora = Sora({ subsets: ["latin"], variable: "--f-sora" });
+
 export const metadata: Metadata = {
-  title: "DTA — Digital Marketing & Technology Agency",
+  title: "DTA — Digital · Trading · Accounts",
   description:
-    "A 3D, motion-driven agency website built with Next.js and Motion. Placeholder content — replace with DTA's real copy.",
+    "Custom CRM + ERP, websites, mobile apps, digital marketing, GST filing, company registration and more. Offices in Tezpur, Assam and Bangalore, Karnataka.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="grain antialiased">{children}</body>
+      <body className={`${inter.variable} ${sora.variable} grain antialiased`}>{children}</body>
     </html>
   );
 }
