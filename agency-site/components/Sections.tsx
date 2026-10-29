@@ -240,8 +240,8 @@ export function Contact() {
           </Reveal>
           <Reveal className="md:col-span-4" delay={0.1}>
             <form className="space-y-7" onSubmit={submit}>
-              <label className="label block text-muted">Full name *<input name="name" required className={field} /></label>
-              <label className="label block text-muted">Phone *<input name="phone" type="tel" required className={field} /></label>
+              <label className="label block text-muted">Full name *<input name="name" required autoComplete="name" className={field} /></label>
+              <label className="label block text-muted">Phone *<input name="phone" type="tel" inputMode="tel" required autoComplete="tel" className={field} /></label>
               <label className="label block text-muted">Department
                 <select name="dept" className={field} defaultValue="Not sure">
                   {["Digital", "Trading", "Accounts", "Not sure"].map((d) => <option key={d}>{d}</option>)}

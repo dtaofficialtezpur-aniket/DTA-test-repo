@@ -45,3 +45,12 @@ section[id] { scroll-margin-top: 4rem; }
   html { scroll-behavior: auto; }
   .marquee { animation: none; }
 }
+
+/* map hero background */
+@keyframes aurora-a { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(8vw,-6vh) scale(1.15); } }
+@keyframes aurora-b { 0%,100% { transform: translate(0,0) scale(1.1); } 50% { transform: translate(-9vw,7vh) scale(0.95); } }
+@keyframes scan { 0% { top: -2%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 102%; opacity: 0; } }
+.aurora-a { animation: aurora-a 20s ease-in-out infinite; }
+.aurora-b { animation: aurora-b 26s ease-in-out infinite; }
+.scan { animation: scan 9s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .aurora-a, .aurora-b, .scan { animation: none; } }
