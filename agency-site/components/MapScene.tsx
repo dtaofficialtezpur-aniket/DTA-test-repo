@@ -138,6 +138,7 @@ function Map3D({ reduce, labels }: { reduce: boolean; labels: Labels }) {
   const group = useRef<THREE.Group>(null);
   const mat = useRef<THREE.MeshStandardMaterial>(null);
   const grid = useRef<THREE.Group>(null);
+  const pSmooth = useRef(0);
   const drawn = useRef(0);
   const drawnSoft = useRef(0);
   const wide = useThree((s) => s.viewport.width) > 7.5;
@@ -161,7 +162,9 @@ function Map3D({ reduce, labels }: { reduce: boolean; labels: Labels }) {
       const r = hero.getBoundingClientRect();
       p = clamp(-r.top / Math.max(1, r.height - window.innerHeight), 0, 1);
     }
-    const k = sample(kf, p);
+    // glide toward the scroll position instead of snapping to it each frame
+    pSmooth.current += (p - pSmooth.current) * (1 - Math.exp(-dt * 5));
+    const k = sample(kf, pSmooth.current);
     const intro = reduce ? 1 : smooth(clamp(t / 2.2, 0, 1));
     const g = group.current;
     if (g) {
@@ -189,7 +192,6 @@ function Map3D({ reduce, labels }: { reduce: boolean; labels: Labels }) {
     if (mat.current) mat.current.emissiveIntensity = 0.5 + (reduce ? 0 : Math.sin(t * 1.4) * 0.12);
     if (grid.current && !reduce) grid.current.position.z = (t * 0.7) % 3;
     cityDots.current.forEach((m, i) => { if (m) m.scale.setScalar(0.8 + (reduce ? 0 : Math.sin(t * 2 + i) * 0.25)); });
-    void dt;
   });
 
   return (
