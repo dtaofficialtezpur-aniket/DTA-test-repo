@@ -1,0 +1,10 @@
+/* app/globals.css  (Tailwind v4) */
+@import "tailwindcss";
+@import "../components/map-hero/map-hero.css";
+
+/* Optional: use your own fonts in the hero. Put the font variables on <body> (next/font does this),
+   then point the kit at them. */
+body {
+  --mh-heading: var(--font-heading);
+  --mh-body: var(--font-body);
+}

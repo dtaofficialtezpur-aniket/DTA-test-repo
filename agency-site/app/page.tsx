@@ -1,6 +1,6 @@
-import { MapHero } from "@/components/MapHero";
+import { DtaMapHero } from "@/components/DtaMapHero";
 import { Nav } from "@/components/Nav";
-import { SmoothScroll } from "@/components/SmoothScroll";
+import { SmoothScroll } from "@/components/map-hero";
 import { About, Contact, Departments, Footer, Marquee, Offers, Process, Software, Why } from "@/components/Sections";
 
 export default function Home() {
@@ -10,7 +10,7 @@ export default function Home() {
       <SmoothScroll />
       <Nav />
       <main>
-        <MapHero />
+        <DtaMapHero />
         <Marquee />
         <Departments />
         <Software />

@@ -1,0 +1,20 @@
+/* ---- Map hero: background animation + fonts + smooth scroll ---- */
+
+/* Fonts. Point these at your own font variables, or leave to inherit the page font. */
+:root {
+  --mh-heading: inherit;
+  --mh-body: inherit;
+}
+
+@keyframes mh-aurora-a { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(8vw,-6vh) scale(1.15); } }
+@keyframes mh-aurora-b { 0%,100% { transform: translate(0,0) scale(1.1); } 50% { transform: translate(-9vw,7vh) scale(0.95); } }
+@keyframes mh-scan { 0% { top: -2%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 102%; opacity: 0; } }
+.mh-aurora-a { animation: mh-aurora-a 20s ease-in-out infinite; }
+.mh-aurora-b { animation: mh-aurora-b 26s ease-in-out infinite; }
+.mh-scan { animation: mh-scan 9s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .mh-aurora-a, .mh-aurora-b, .mh-scan { animation: none; } }
+
+/* Lenis smooth scroll: its own easing replaces the browser's. */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: hidden; }
