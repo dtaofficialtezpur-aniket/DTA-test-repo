@@ -122,6 +122,7 @@ Remove the `"use client"` lines. Everything else is plain React.
 - The 3D scene is loaded on the client only, after the page (it is not part of the server HTML).
 - Rendering is capped at 1.75× pixel density. For very old phones, lower `dpr` in `MapScene.tsx`.
 - Fewer cities means fewer lines and lights; 6 is comfortable on a phone.
+- With a single pin the bright arc is skipped automatically.
 - The scene does no network requests: no textures, fonts or model files to download.
 
 ## Files

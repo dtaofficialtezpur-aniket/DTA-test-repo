@@ -165,7 +165,8 @@ function MapWorld({ reduce, heroRef, labelRefs, pins, stages, arc, cities, outli
     () => new THREE.ExtrudeGeometry(new THREE.Shape(outline.map(([lo, la]) => new THREE.Vector2((lo - geo3.cx) * geo3.k, (la - geo3.cy) * geo3.k))), { depth: DEPTH, bevelEnabled: false }),
     [outline, geo3],
   );
-  const main = useMemo(() => arcCurve(pinPos[arc[0]], pinPos[arc[1]], 1.7), [pinPos, arc]);
+  // the bright arc needs two different pins; with a single place it is simply left out
+  const main = useMemo(() => (pinPos[arc[0]] && pinPos[arc[1]] && arc[0] !== arc[1] ? arcCurve(pinPos[arc[0]], pinPos[arc[1]], 1.7) : null), [pinPos, arc]);
   const routes = useMemo(
     () => cities.map((c, i) => arcCurve(pinPos[c.from], cityPos[i], 0.4 + pinPos[c.from].distanceTo(cityPos[i]) * 0.22)),
     [cities, pinPos, cityPos],
@@ -228,8 +229,12 @@ function MapWorld({ reduce, heroRef, labelRefs, pins, stages, arc, cities, outli
           <Edges color={colors.edge} threshold={30} />
         </mesh>
         {routes.map((c, i) => <Arc key={i} curve={c} radius={0.006} color={colors.edge} opacity={0.4} drawn={drawnSoft} />)}
-        <Arc curve={main} radius={0.01} color="#8ee0ff" opacity={1} drawn={drawn} />
-        <Packets curve={main} count={4} speed={0.16} offset={0} />
+        {main && (
+          <>
+            <Arc curve={main} radius={0.01} color="#8ee0ff" opacity={1} drawn={drawn} />
+            <Packets curve={main} count={4} speed={0.16} offset={0} />
+          </>
+        )}
         {routes.map((c, i) => <Packets key={i} curve={c} count={1} speed={0.1 + (i % 3) * 0.03} offset={i * 0.17} />)}
         {cityPos.map((c, i) => (
           <mesh key={i} position={c.toArray()} ref={(m) => { cityDots.current[i] = m; }}><sphereGeometry args={[0.032, 16, 16]} /><meshBasicMaterial color="#8ee0ff" /></mesh>
